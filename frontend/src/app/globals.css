@@ -1,19 +1,64 @@
 /* ==========================
-   IMPORT TAILWIND + FONTS
+   TAILWIND v4
 ========================== */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Manrope:wght@400;500;600;700&display=swap');
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 /* ==========================
-   BODY GLOBAL
+   THEME ABRICOT (v4)
+========================== */
+@theme {
+  /* Fonts */
+  --font-manrope: "Manrope", sans-serif;
+  --font-inter: "Inter", sans-serif;
+
+  /* Brand colors */
+  --color-brand-dark: #D3590B;
+  --color-brand-light: #FFE8D9;
+
+  /* Text colors */
+  --color-text-primary: #1F1F1F;
+  --color-text-secondary: #6B7280;
+  --color-text-white: #FFFFFF;
+
+  /* Backgrounds */
+  --color-bg-dashboard: #F9FAFB;
+  --color-bg-content: #FFFFFF;
+  --color-bg-grey-light: #F3F4F6;
+
+  /* Other colors */
+  --color-btn-black: #000000;
+
+
+  /* System colors */
+  --color-system-success: #22C55E;
+  --color-system-error: #EF4444;
+  --color-system-warning: #F59E0B;
+  --color-system-info: #3B82F6;
+  --color-system-neutral: #E5E7EB;
+
+  /* Radius */
+  --radius-card: 8px;
+
+  /* Shadows */
+  --shadow-card: 0px 1px 2px rgba(0,0,0,0.05);
+  --shadow-modal: 0px 10px 25px rgba(0,0,0,0.1);
+  --shadow-focus: 0 0 0 3px rgba(211,89,11,0.4);
+
+  /* Spacing */
+  --spacing-4_5: 1.125rem;
+
+   /* Container */
+  --container-width: 1440px;
+
+}
+
+/* ==========================
+   GLOBAL BODY
 ========================== */
 body {
-  @apply font-[Inter]; /* font Inter */
-  background-color: #F9FAFB; /* bg-dashboard */
-  color: #1F1F1F;           /* text-primary */
+  font-family: var(--font-inter);
+  background-color: var(--color-bg-dashboard);
+  color: var(--color-text-primary);
   min-height: 100vh;
   margin: 0;
   padding: 0;
@@ -22,66 +67,69 @@ body {
 }
 
 /* ==========================
-   TITRES H1-H6
+   TITRES
 ========================== */
 h1, h2, h3, h4, h5, h6 {
-  @apply font-[Manrope]; /* font Manrope */
-  color: #1F1F1F;       /* text-primary */
-  margin: 0;
+  font-family: var(--font-manrope);
 }
 
 /* ==========================
-   SCROLLBAR CUSTOM (OPTIONNEL)
+   SCROLLBAR
 ========================== */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #F3F4F6; /* bg greyLight */
+  background: var(--color-bg-grey-light);
 }
 ::-webkit-scrollbar-thumb {
-  background-color: #D3590B; /* brand-dark */
+  background-color: var(--color-brand-dark);
   border-radius: 8px;
-  border: 2px solid #F3F4F6; /* bg greyLight */
+  border: 2px solid var(--color-bg-grey-light);
 }
 
 /* ==========================
    LIENS
 ========================== */
 a {
-  @apply text-[#D3590B]; /* brand-dark */
-  text-decoration: none;
+  color: var(--color-brand-dark);
   transition: color 0.2s;
 }
 a:hover {
-  @apply text-[#FFE8D9]; /* brand-light */
+  color: var(--color-brand-light);
 }
 
 /* ==========================
-   BOUTONS GLOBAUX
+   BOUTONS
 ========================== */
 button {
-  @apply font-[Manrope] cursor-pointer transition-all duration-150;
+  font-family: var(--font-inter);
+  cursor: pointer;
+  transition: all 0.15s;
 }
 
 /* ==========================
    FORM INPUTS
 ========================== */
 input, select, textarea {
-  @apply font-[Inter] outline-none;
+  font-family: var(--font-inter);
+  outline: none;
 }
 
 /* ==========================
-   LIGNES DE SÉPARATION
+   HR
 ========================== */
 hr {
-  @apply border-[#E5E7EB]; /* system-neutral */
+  border-color: var(--color-system-neutral);
 }
 
 /* ==========================
-   UTILITIES SUPPLÉMENTAIRES
+   AUTH CONTAINER
 ========================== */
-/* Centrer les pages auth sans header/footer */
 .auth-container {
-  @apply flex items-center justify-center min-h-screen bg-[#F9FAFB]; /* bg-dashboard */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--color-bg-dashboard);
 }

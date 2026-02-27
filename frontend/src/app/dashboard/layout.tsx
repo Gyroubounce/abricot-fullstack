@@ -1,25 +1,22 @@
-"use client";
-
-import { ReactNode } from "react";
+// src/app/(dashboard)/layout.tsx
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
 
-interface DashboardLayoutProps {
-  children: ReactNode;
-}
-
-export default function DashboardLayout({ children }: DashboardLayoutProps) {
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div className="flex flex-col min-h-screen bg-bg-dashboard">
-      {/* Header */}
+    <div className="min-h-screen bg-bg-dashboard flex flex-col">
       <Header />
 
-      {/* Contenu principal */}
-      <main className="flex-1 w-full flex justify-center px-4 md:px-0">
-        <div className="w-[1215px]">{children}</div>
+      <main className="flex justify-center w-full flex-1">
+        <div className="w-full max-w-303.75 py-10 px-4">
+          {children}
+        </div>
       </main>
 
-      {/* Footer */}
       <Footer />
     </div>
   );

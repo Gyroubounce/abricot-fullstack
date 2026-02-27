@@ -1,8 +1,7 @@
-import { ReactNode } from 'react';
-
-export default function AuthLayout({ children }: { children: ReactNode }) {
+// src/app/(auth)/layout.tsx
+export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-center min-h-screen bg-bg-dashboard">
+    <div className="auth-container">
       {children}
     </div>
   );

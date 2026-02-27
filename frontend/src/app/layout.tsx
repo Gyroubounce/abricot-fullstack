@@ -1,10 +1,36 @@
-import './globals.css';
-import { ReactNode } from 'react';
+import "./globals.css";
+import { Inter, Manrope } from "next/font/google";
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+export const metadata = {
+  title: "Abricot Dashboard",
+  description: "Dashboard UI - Thème Abricot",
+};
+
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="fr">
-      <body>{children}</body>
+    <html
+      lang="fr"
+      className={`${inter.variable} ${manrope.variable}`}
+    >
+      <body>
+        {children}
+      </body>
     </html>
   );
 }
