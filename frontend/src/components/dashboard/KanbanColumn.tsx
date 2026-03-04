@@ -7,9 +7,10 @@ type Props = {
   id: TaskWithProject["status"];
   title: string;
   tasks: TaskWithProject[];
+  onEdit: (task: TaskWithProject) => void;
 };
 
-export default function KanbanColumn({ id, title, tasks }: Props) {
+export default function KanbanColumn({ id, title, tasks, onEdit }: Props) {
   const { setNodeRef, isOver } = useDroppable({ id });
 
   return (
@@ -17,7 +18,6 @@ export default function KanbanColumn({ id, title, tasks }: Props) {
       aria-label={`Colonne ${title} — ${tasks.length} tâche${tasks.length > 1 ? "s" : ""}`}
       className="flex flex-col gap-3 flex-1 min-w-0"
     >
-      {/* En-tête colonne */}
       <div className="flex items-center justify-between px-1">
         <h3 className="font-semibold text-text-primary text-sm">
           {title}
@@ -30,7 +30,6 @@ export default function KanbanColumn({ id, title, tasks }: Props) {
         </span>
       </div>
 
-      {/* Zone de drop */}
       <div
         ref={setNodeRef}
         className={`rounded-[8px] p-2 min-h-50 transition-colors ${
@@ -49,7 +48,7 @@ export default function KanbanColumn({ id, title, tasks }: Props) {
             ) : (
               tasks.map((task) => (
                 <li key={task.id}>
-                  <TaskCardKanban task={task} />
+                  <TaskCardKanban task={task} onEdit={onEdit} />
                 </li>
               ))
             )}

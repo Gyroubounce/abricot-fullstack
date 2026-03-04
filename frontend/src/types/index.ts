@@ -34,7 +34,6 @@ export type TaskPriority = "LOW" | "MEDIUM" | "HIGH" | "URGENT";
 
 export type TaskAssignee = {
   id: string;
-  userId: string;
   taskId: string;
   user: User;
   assignedAt: string;

@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useProjects } from "@/hooks/useProjects";
+import { useModal } from "@/hooks/useModal";
 import ProjectCard from "@/components/projects/ProjectCard";
-import CreateProjectModal from "@/components/projects/CreateProjectModal";
+import CreateProjectModal from "@/components/modals/CreateProjectModal";
 import type { User } from "@/types/index";
 
 export default function ProjectsPage() {
   const { projects, loading, error, fetchProjects, createProject, addContributor } = useProjects();
-  const [showModal, setShowModal] = useState(false);
+  const { isOpen, openModal, closeModal } = useModal();
 
   useEffect(() => {
     fetchProjects();
@@ -19,16 +20,11 @@ export default function ProjectsPage() {
     description: string,
     contributors: User[]
   ) {
-    // 1. Créer le projet
     const projectId = await createProject(name, description);
     if (!projectId) return;
-
-    // 2. Ajouter les contributeurs un par un
     await Promise.all(
       contributors.map((user) => addContributor(projectId, user.email))
     );
-
-    // 3. Recharger la liste
     await fetchProjects();
   }
 
@@ -47,7 +43,7 @@ export default function ProjectsPage() {
         </div>
 
         <button
-          onClick={() => setShowModal(true)}
+          onClick={() => openModal("createProject")}
           className="px-4 py-2 bg-btn-black text-text-white text-sm font-medium rounded-md hover:opacity-90 transition"
           aria-label="Créer un nouveau projet"
         >
@@ -74,7 +70,7 @@ export default function ProjectsPage() {
             Aucun projet pour le moment.
           </p>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => openModal("createProject")}
             className="px-4 py-2 bg-btn-black text-text-white text-sm font-medium rounded-md hover:opacity-90 transition"
           >
             + Créer votre premier projet
@@ -96,10 +92,10 @@ export default function ProjectsPage() {
         </ul>
       )}
 
-      {/* Modale Créer un projet */}
-      {showModal && (
+      {/* Modale */}
+      {isOpen("createProject") && (
         <CreateProjectModal
-          onClose={() => setShowModal(false)}
+          onClose={closeModal}
           onSubmit={handleCreateProject}
         />
       )}

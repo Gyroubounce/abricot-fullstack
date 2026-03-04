@@ -2,16 +2,16 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeftIcon, SparklesIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, SparklesIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { useProject } from "@/hooks/useProject";
 import { useAuth } from "@/hooks/useAuth";
+import { useModal } from "@/hooks/useModal";
 import TaskCard from "@/components/projects/TaskCard";
-import EditProjectModal from "@/components/projects/EditProjectModal";
-import CreateTaskModal from "@/components/projects/CreateTaskModal";
-import AITaskModal from "@/components/projects/AITaskModal";
+import EditProjectModal from "@/components/modals/EditProjectModal";
+import CreateTaskModal from "@/components/modals/CreateTaskModal";
+import AITaskModal from "@/components/modals/AITaskModal";
 import type { Task } from "@/types/index";
 
-type View = "list" | "calendar";
 type FilterStatus = Task["status"] | "ALL";
 
 function getInitials(name: string): string {
@@ -34,20 +34,17 @@ export default function ProjectDetailPage() {
     updateTaskStatus,
     deleteTask,
   } = useProject(id);
+  const { isOpen, openModal, closeModal } = useModal();
 
-  const [view, setView] = useState<View>("list");
+  const [view, setView] = useState<"list" | "calendar">("list");
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("ALL");
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showCreateTaskModal, setShowCreateTaskModal] = useState(false);
-  const [showAIModal, setShowAIModal] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
   useEffect(() => {
     fetchProject();
   }, [fetchProject]);
 
-  // Filtrage + tri tâches
   const priorityOrder: Record<Task["priority"], number> = {
     URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3,
   };
@@ -62,14 +59,11 @@ export default function ProjectDetailPage() {
     })
     .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 
-  // Créer tâches IA
   async function handleAISubmit(
     aiTasks: { title: string; description: string; priority: Task["priority"] }[]
   ) {
     await Promise.all(
-      aiTasks.map((t) =>
-        createTask(t.title, t.description, "", [], "TODO", t.priority)
-      )
+      aiTasks.map((t) => createTask(t.title, t.description, "", [], "TODO", t.priority))
     );
   }
 
@@ -98,8 +92,6 @@ export default function ProjectDetailPage() {
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-
-        {/* Gauche : retour + titre + modifier */}
         <div className="flex items-center gap-3">
           <button
             type="button"
@@ -117,7 +109,7 @@ export default function ProjectDetailPage() {
             {isOwner && (
               <button
                 type="button"
-                onClick={() => setShowEditModal(true)}
+                onClick={() => openModal("editProject")}
                 className="text-xs text-brand-dark underline hover:opacity-80 transition self-start"
               >
                 modifier
@@ -126,11 +118,10 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
-        {/* Droite : boutons */}
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
-            onClick={() => setShowAIModal(true)}
+            onClick={() => openModal("aiTask")}
             className="flex items-center gap-1.5 px-3 py-2 border border-system-neutral bg-bg-content text-text-primary text-sm font-medium rounded-md hover:bg-bg-grey-light transition"
             aria-label="Générer des tâches avec l'IA"
           >
@@ -140,7 +131,7 @@ export default function ProjectDetailPage() {
 
           <button
             type="button"
-            onClick={() => setShowCreateTaskModal(true)}
+            onClick={() => openModal("createTask")}
             className="px-4 py-2 bg-btn-black text-text-white text-sm font-medium rounded-md hover:opacity-90 transition"
           >
             Créer une tâche
@@ -161,8 +152,6 @@ export default function ProjectDetailPage() {
         </h2>
 
         <ul className="flex flex-col gap-3" aria-label="Liste des contributeurs">
-
-          {/* Propriétaire */}
           {owner && (
             <li className="flex items-center gap-3">
               <div
@@ -184,7 +173,6 @@ export default function ProjectDetailPage() {
             </li>
           )}
 
-          {/* Contributeurs */}
           {contributors.map((member) => (
             <li key={member.id} className="flex items-center gap-3">
               <div
@@ -198,7 +186,6 @@ export default function ProjectDetailPage() {
               <span className="text-sm text-text-primary">{member.user.name}</span>
             </li>
           ))}
-
         </ul>
       </section>
 
@@ -207,8 +194,6 @@ export default function ProjectDetailPage() {
         className="bg-bg-content rounded-[8px] shadow-card px-6 py-5 flex flex-col gap-4"
         aria-labelledby="tasks-title"
       >
-
-        {/* En-tête tâches */}
         <div className="flex flex-col gap-4">
           <h2
             id="tasks-title"
@@ -220,15 +205,14 @@ export default function ProjectDetailPage() {
           <div className="flex items-center justify-between flex-wrap gap-3">
             <p className="text-xs text-text-secondary">Par ordre de priorité</p>
 
-            {/* Contrôles */}
             <div className="flex items-center gap-2 flex-wrap">
 
-              {/* Vue liste / calendrier */}
+              {/* Vue */}
               <div className="flex gap-1" role="group" aria-label="Mode d'affichage">
                 <button
                   type="button"
                   onClick={() => setView("list")}
-                  aria-pressed={view === "list" ? "true" : "false"}
+                  aria-pressed={view === "list" ? ("true" as const) : ("false" as const)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
                     view === "list"
                       ? "bg-btn-black text-text-white"
@@ -240,7 +224,7 @@ export default function ProjectDetailPage() {
                 <button
                   type="button"
                   onClick={() => setView("calendar")}
-                  aria-pressed={view === "calendar" ? "true" : "false"}
+                  aria-pressed={view === "calendar" ? ("true" as const) : ("false" as const)}
                   className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
                     view === "calendar"
                       ? "bg-btn-black text-text-white"
@@ -275,6 +259,10 @@ export default function ProjectDetailPage() {
                   className="pl-4 pr-8 py-1.5 text-xs border border-system-neutral rounded-md bg-bg-content text-text-primary w-48 transition"
                   aria-label="Rechercher une tâche"
                 />
+                <MagnifyingGlassIcon
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-secondary pointer-events-none"
+                  aria-hidden="true"
+                />
               </div>
 
             </div>
@@ -292,9 +280,12 @@ export default function ProjectDetailPage() {
               <li key={task.id}>
                 <TaskCard
                   task={task}
-                  onDelete={(taskId) => deleteTask(taskId)}
-                  onEdit={(task) => setEditingTask(task)}
-                  onStatusChange={(taskId, status) => updateTaskStatus(taskId, status)}
+                  onDelete={deleteTask}
+                  onEdit={(task) => {
+                    setEditingTask(task);
+                    openModal("editTask");
+                  }}
+                  onStatusChange={updateTaskStatus}
                 />
               </li>
             ))}
@@ -304,30 +295,33 @@ export default function ProjectDetailPage() {
       </section>
 
       {/* Modales */}
-      {showEditModal && (
+      {isOpen("editProject") && (
         <EditProjectModal
           initialName={project.name}
           initialDescription={project.description ?? ""}
           initialMembers={project.members}
-          onClose={() => setShowEditModal(false)}
+          onClose={closeModal}
           onSubmit={updateProject}
           onAddContributor={addContributor}
           onRemoveContributor={removeContributor}
         />
       )}
 
-      {showCreateTaskModal && (
+      {isOpen("createTask") && (
         <CreateTaskModal
           members={project.members}
-          onClose={() => setShowCreateTaskModal(false)}
+          onClose={closeModal}
           onSubmit={createTask}
         />
       )}
 
-      {editingTask && (
+      {isOpen("editTask") && editingTask && (
         <CreateTaskModal
           members={project.members}
-          onClose={() => setEditingTask(null)}
+          onClose={() => {
+            closeModal();
+            setEditingTask(null);
+          }}
           onSubmit={async (title, description, dueDate, assigneeIds, status, priority) => {
             await updateTaskStatus(editingTask.id, status);
             setEditingTask(null);
@@ -335,9 +329,9 @@ export default function ProjectDetailPage() {
         />
       )}
 
-      {showAIModal && (
+      {isOpen("aiTask") && (
         <AITaskModal
-          onClose={() => setShowAIModal(false)}
+          onClose={closeModal}
           onSubmit={handleAISubmit}
         />
       )}

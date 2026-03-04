@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { apiRequest } from "@/hooks/useApi";
 import type { Project, Task, TaskAssignee, TaskWithProject } from "@/types/index";
 
 export function useDashboard() {
@@ -12,59 +13,57 @@ export function useDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
+    console.log("fetchAll started");
     setLoading(true);
     setError(null);
 
-    try {
-      // 1. Récupérer tous les projets
-      const resProjects = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/projects`,
-        { credentials: "include" }
-      );
-      const dataProjects = await resProjects.json();
+    const { data: projectData, error: projectErr } = await apiRequest<{ projects: Project[] }>(
+      "/projects"
+    );
 
-      if (!resProjects.ok) {
-        throw new Error(dataProjects.message || "Erreur lors du chargement des projets");
-      }
+     console.log("projects result:", projectData, projectErr);
 
-      const projectList: Project[] = dataProjects.data.projects;
-      setProjects(projectList);
-
-      // 2. Récupérer les tâches de chaque projet en parallèle
-      const taskResults = await Promise.all(
-        projectList.map(async (project) => {
-          const res = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/projects/${project.id}/tasks`,
-            { credentials: "include" }
-          );
-          if (!res.ok) return [];
-          const data = await res.json();
-          return data.data.tasks.map((task: Task) => ({
-            ...task,
-            projectName: project.name,
-          }));
-        })
-      );
-
-      // 3. Aplatir et filtrer les tâches assignées à l'utilisateur connecté
-      const allTasks: TaskWithProject[] = taskResults.flat();
-      const myTasks = allTasks.filter((task) =>
-        task.assignees.some((a: TaskAssignee) => a.userId === user!.id)
-      );
-
-      setTasks(myTasks);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Une erreur est survenue");
-      }
-    } finally {
+    if (projectErr || !projectData) {
+      setError(projectErr ?? "Erreur lors du chargement");
       setLoading(false);
+      return;
     }
+
+    const projectList = projectData.projects;
+    setProjects(projectList);
+
+console.log("projects list:", projectData?.projects);
+
+    const taskResults = await Promise.all(
+      projectList.map(async (project) => {
+        const { data } = await apiRequest<{ tasks: Task[] }>(
+          `/projects/${project.id}/tasks`
+        );
+          console.log(`tasks for project ${project.id}:`, data?.tasks);
+        return (data?.tasks ?? []).map((task: Task) => ({
+          ...task,
+          projectName: project.name,
+        }));
+      })
+    );
+
+
+    const allTasks: TaskWithProject[] = taskResults.flat();
+
+    console.log("user.id:", user!.id);
+console.log("sample assignees:", JSON.stringify(allTasks[0]?.assignees));
+    const myTasks = allTasks.filter((task) =>
+      task.assignees.some((a: TaskAssignee) => a.user.id === user!.id)
+    );
+console.log("allTasks:", taskResults.flat());
+console.log("myTasks:", myTasks);
+
+    setTasks(myTasks);
+    setLoading(false);
   }, [user]);
 
   useEffect(() => {
+    console.log("useDashboard useEffect, user:", user);
     if (!user) return;
     fetchAll();
   }, [user, fetchAll]);
@@ -74,28 +73,16 @@ export function useDashboard() {
     projectId: string,
     newStatus: TaskWithProject["status"]
   ) {
-    // Optimistic update
     setTasks((prev) =>
       prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
     );
 
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/projects/${projectId}/tasks/${taskId}`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ status: newStatus }),
-        }
-      );
+    const { error: err } = await apiRequest(
+      `/projects/${projectId}/tasks/${taskId}`,
+      { method: "PUT", body: { status: newStatus } }
+    );
 
-      if (!res.ok) {
-        await fetchAll();
-      }
-    } catch {
-      await fetchAll();
-    }
+    if (err) await fetchAll();
   }
 
   return { projects, tasks, loading, error, updateTaskStatus };
