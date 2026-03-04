@@ -73,7 +73,7 @@ export default function Header() {
         </Link>
 
         <Link
-          href="/projets"
+          href="/dashboard/projects"
           aria-current={isProjets ? "page" : undefined}
           className={`
             group relative
