@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ContributorSearch from "@/components/ui/ContributorSearch";
+import { getInitials } from "@/lib/utils/initials";
 import type { User, ProjectMember } from "@/types/index";
 
 type Props = {
@@ -37,7 +38,6 @@ export default function ProjectForm({
     await onSubmit(name, description);
   }
 
-  // IDs à exclure de la recherche (membres déjà dans le projet)
   const excludeUserIds = initialMembers.map((m) => m.user.id);
 
   return (
@@ -77,38 +77,36 @@ export default function ProjectForm({
       </div>
 
       {/* Contributeurs existants (mode édition) */}
-      {initialMembers.filter((m) => m.role !== "OWNER").length > 0 && onRemoveContributor && (
+      {initialMembers.length > 0 && onRemoveContributor && (
         <div className="flex flex-col gap-2">
           <span className="text-sm font-medium text-text-primary">
             Contributeurs actuels
           </span>
           <div className="flex flex-wrap gap-2">
-            {initialMembers
-              .filter((m) => m.role !== "OWNER")
-              .map((member) => (
+            {initialMembers.map((member) => (
+              <div
+                key={member.id}
+                className="flex items-center gap-1.5 bg-bg-grey-light px-2.5 py-1 rounded-full"
+              >
                 <div
-                  key={member.id}
-                  className="flex items-center gap-1.5 bg-bg-grey-light px-2.5 py-1 rounded-full"
+                  className="w-5 h-5 rounded-full bg-brand-light flex items-center justify-center"
+                  aria-hidden="true"
                 >
-                  <div
-                    className="w-5 h-5 rounded-full bg-brand-light flex items-center justify-center"
-                    aria-hidden="true"
-                  >
-                    <span className="text-[10px] font-semibold text-text-primary">
-                      {member.user.name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2)}
-                    </span>
-                  </div>
-                  <span className="text-xs text-text-primary">{member.user.name}</span>
-                  <button
-                    type="button"
-                    onClick={() => onRemoveContributor(member.user.id)}
-                    className="text-text-secondary hover:text-system-error transition"
-                    aria-label={`Retirer ${member.user.name}`}
-                  >
-                    ×
-                  </button>
+                  <span className="text-[10px] font-semibold text-text-primary">
+                    {getInitials(member.user.name)}
+                  </span>
                 </div>
-              ))}
+                <span className="text-xs text-text-primary">{member.user.name}</span>
+                <button
+                  type="button"
+                  onClick={() => onRemoveContributor(member.user.id)}
+                  className="text-text-secondary hover:text-system-error transition"
+                  aria-label={`Retirer ${member.user.name}`}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
           </div>
         </div>
       )}

@@ -1,7 +1,18 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { apiRequest } from "@/hooks/useApi";
+import {
+  fetchProject as apiFetchProject,
+  fetchProjectTasks,
+  updateProject as apiUpdateProject,
+  addContributor as apiAddContributor,
+  removeContributor as apiRemoveContributor,
+} from "@/lib/api/projects";
+import {
+  createTask as apiCreateTask,
+  updateTask as apiUpdateTask,
+  deleteTask as apiDeleteTask,
+} from "@/lib/api/tasks";
 import type { Project, Task } from "@/types/index";
 
 export type ProjectDetail = Project & {
@@ -17,9 +28,7 @@ export function useProject(projectId: string) {
     setLoading(true);
     setError(null);
 
-    const { data: projectData, error: projectErr } = await apiRequest<{ project: Project }>(
-      `/projects/${projectId}`
-    );
+    const { data: projectData, error: projectErr } = await apiFetchProject(projectId);
 
     if (projectErr || !projectData) {
       setError(projectErr ?? "Projet introuvable");
@@ -27,9 +36,7 @@ export function useProject(projectId: string) {
       return;
     }
 
-    const { data: taskData } = await apiRequest<{ tasks: Task[] }>(
-      `/projects/${projectId}/tasks`
-    );
+    const { data: taskData } = await fetchProjectTasks(projectId);
 
     setProject({
       ...projectData.project,
@@ -40,28 +47,19 @@ export function useProject(projectId: string) {
   }, [projectId]);
 
   async function updateProject(name: string, description: string): Promise<void> {
-    const { error: err } = await apiRequest(`/projects/${projectId}`, {
-      method: "PUT",
-      body: { name, description },
-    });
+    const { error: err } = await apiUpdateProject(projectId, name, description);
     if (err) throw new Error(err);
     await fetchProject();
   }
 
   async function addContributor(email: string): Promise<void> {
-    const { error: err } = await apiRequest(
-      `/projects/${projectId}/contributors`,
-      { method: "POST", body: { email } }
-    );
+    const { error: err } = await apiAddContributor(projectId, email);
     if (err) throw new Error(err);
     await fetchProject();
   }
 
   async function removeContributor(userId: string): Promise<void> {
-    const { error: err } = await apiRequest(
-      `/projects/${projectId}/contributors/${userId}`,
-      { method: "DELETE" }
-    );
+    const { error: err } = await apiRemoveContributor(projectId, userId);
     if (err) throw new Error(err);
     await fetchProject();
   }
@@ -74,31 +72,21 @@ export function useProject(projectId: string) {
     status: Task["status"],
     priority: Task["priority"]
   ): Promise<void> {
-    const { error: err } = await apiRequest(
-      `/projects/${projectId}/tasks`,
-      {
-        method: "POST",
-        body: { title, description, dueDate, assigneeIds, status, priority },
-      }
+    const { error: err } = await apiCreateTask(
+      projectId, title, description, dueDate, assigneeIds, status, priority
     );
     if (err) throw new Error(err);
     await fetchProject();
   }
 
   async function updateTaskStatus(taskId: string, status: Task["status"]): Promise<void> {
-    const { error: err } = await apiRequest(
-      `/projects/${projectId}/tasks/${taskId}`,
-      { method: "PUT", body: { status } }
-    );
+    const { error: err } = await apiUpdateTask(projectId, taskId, { status });
     if (err) throw new Error(err);
     await fetchProject();
   }
 
   async function deleteTask(taskId: string): Promise<void> {
-    const { error: err } = await apiRequest(
-      `/projects/${projectId}/tasks/${taskId}`,
-      { method: "DELETE" }
-    );
+    const { error: err } = await apiDeleteTask(projectId, taskId);
     if (err) throw new Error(err);
     await fetchProject();
   }

@@ -3,14 +3,14 @@ import Taches from "@/app/assets/Taches.png";
 import Kanban from "@/app/assets/Kanban.png";
 
 type Props = {
-  firstName: string;
+  name: string;
   onCreateProject: () => void;
   view: "list" | "kanban";
   onViewChange: (view: "list" | "kanban") => void;
 };
 
 export default function DashboardHeader({
-  firstName,
+  name,
   onCreateProject,
   view,
   onViewChange,
@@ -25,7 +25,7 @@ export default function DashboardHeader({
             Tableau de bord
           </h1>
           <p className="text-sm text-text-secondary">
-            Bonjour {firstName}, voici un aperçu de vos projets et tâches.
+            Bonjour {name}, voici un aperçu de vos projets et tâches.
           </p>
         </div>
 

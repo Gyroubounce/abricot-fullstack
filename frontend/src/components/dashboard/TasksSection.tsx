@@ -16,6 +16,7 @@ import TaskCardList from "@/components/dashboard/TaskCardList";
 import KanbanColumn from "@/components/dashboard/KanbanColumn";
 import CreateTaskModal from "@/components/modals/CreateTaskModal";
 import type { TaskWithProject, Project, ProjectMember } from "@/types/index";
+import { useTaskFilters } from "@/hooks/useTaskFilters";
 
 const COLUMNS: { id: TaskWithProject["status"]; label: string }[] = [
   { id: "TODO", label: "À faire" },
@@ -44,11 +45,19 @@ export default function TasksSection({
   view,
   onUpdateTaskStatus,
 }: Props) {
-  const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<TaskWithProject["status"] | "ALL">("ALL");
-  const [filterPriority, setFilterPriority] = useState<TaskWithProject["priority"] | "ALL">("ALL");
+
   const [editingTask, setEditingTask] = useState<TaskWithProject | null>(null);
   const { isOpen, openModal, closeModal } = useModal();
+
+  const {
+  search,
+  setSearch,
+  filterStatus,
+  setFilterStatus,
+  filterPriority,
+  setFilterPriority,
+  filteredTasks,
+} = useTaskFilters(tasks);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -57,21 +66,7 @@ export default function TasksSection({
     })
   );
 
-  const priorityOrder: Record<TaskWithProject["priority"], number> = {
-    URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3,
-  };
-
-  const filteredTasks = tasks
-    .filter((task) => {
-      const matchSearch =
-        task.title.toLowerCase().includes(search.toLowerCase()) ||
-        task.description?.toLowerCase().includes(search.toLowerCase()) ||
-        task.projectName.toLowerCase().includes(search.toLowerCase());
-      const matchStatus = filterStatus === "ALL" || task.status === filterStatus;
-      const matchPriority = filterPriority === "ALL" || task.priority === filterPriority;
-      return matchSearch && matchStatus && matchPriority;
-    })
-    .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+ 
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
@@ -208,7 +203,7 @@ export default function TasksSection({
             closeModal();
             setEditingTask(null);
           }}
-          onSubmit={async (title, description, dueDate, assigneeIds, status, priority) => {
+          onSubmit={async (title, description, dueDate, assigneeIds, status, ) => {
             await onUpdateTaskStatus(editingTask.id, editingTask.projectId, status);
             closeModal();
             setEditingTask(null);

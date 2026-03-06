@@ -28,13 +28,13 @@ export default function DashboardPage() {
     await fetchProjects();
   }
 
-  const firstName = user?.name?.split(" ")[0] || "";
+  
 
   return (
     <div className="flex flex-col gap-8">
 
       <DashboardHeader
-        firstName={firstName}
+        name={user?.name ?? ""}
         view={view}
         onCreateProject={() => openModal("createProject")}
         onViewChange={setView}

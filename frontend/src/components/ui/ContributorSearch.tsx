@@ -2,11 +2,9 @@
 
 import { useState, useRef, useEffect } from "react";
 import { MagnifyingGlassIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import { getInitials } from "@/lib/utils/initials";
+import { searchUsers } from "@/lib/api/users";
 import type { User } from "@/types/index";
-
-function getInitials(name: string): string {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-}
 
 type Props = {
   selectedUsers: User[];
@@ -41,7 +39,6 @@ export default function ContributorSearch({
 
     if (searchTimeout.current) clearTimeout(searchTimeout.current);
 
-    // Recherche locale si localUsers fourni
     if (localUsers) {
       const filtered = localUsers.filter(
         (u) =>
@@ -54,19 +51,14 @@ export default function ContributorSearch({
       return;
     }
 
-    // Sinon recherche API avec debounce
     if (query.length < 2) return;
 
     searchTimeout.current = setTimeout(async () => {
       setSearching(true);
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/users/search?query=${encodeURIComponent(query)}`,
-          { credentials: "include" }
-        );
-        const data = await res.json();
-        if (res.ok) {
-          const filtered = data.data.users.filter(
+        const { data } = await searchUsers(query);
+        if (data) {
+          const filtered = data.users.filter(
             (u: User) =>
               !selectedUsers.some((s) => s.id === u.id) &&
               !excludeUserIds.includes(u.id)
@@ -91,7 +83,6 @@ export default function ContributorSearch({
     <div className="flex flex-col gap-2">
       <span className="text-sm font-medium text-text-primary">{label}</span>
 
-      {/* Utilisateurs sélectionnés */}
       {selectedUsers.length > 0 && (
         <div className="flex flex-wrap gap-2" aria-label="Contributeurs sélectionnés">
           {selectedUsers.map((user) => (
@@ -121,7 +112,6 @@ export default function ContributorSearch({
         </div>
       )}
 
-      {/* Input recherche */}
       <div className="relative">
         <MagnifyingGlassIcon
           className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary"
@@ -142,7 +132,6 @@ export default function ContributorSearch({
           aria-haspopup="listbox"
         />
 
-        {/* Résultats */}
         {(results.length > 0 || searching) && (
           <div
             id={listboxId.current}

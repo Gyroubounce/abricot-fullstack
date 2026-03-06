@@ -1,29 +1,9 @@
 "use client";
 
 import { FolderIcon, CalendarIcon, ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
+import { formatDate } from "@/lib/utils/format";
+import { statusLabel, statusColor } from "@/lib/utils/task";
 import type { TaskWithProject } from "@/types/index";
-
-const statusLabel: Record<TaskWithProject["status"], string> = {
-  TODO: "À faire",
-  IN_PROGRESS: "En cours",
-  DONE: "Terminée",
-  CANCELLED: "Annulée",
-};
-
-const statusColor: Record<TaskWithProject["status"], string> = {
-  TODO: "bg-brand-light text-brand-dark",
-  IN_PROGRESS: "bg-blue-100 text-blue-700",
-  DONE: "bg-green-100 text-green-700",
-  CANCELLED: "bg-gray-100 text-gray-500",
-};
-
-function formatDate(dateStr?: string): string {
-  if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-  });
-}
 
 type Props = {
   task: TaskWithProject;
@@ -37,7 +17,6 @@ export default function TaskCardList({ task, onEdit }: Props) {
       aria-label={`Tâche : ${task.title}`}
       role="listitem"
     >
-      {/* Contenu principal */}
       <div className="flex flex-col gap-2 flex-1 min-w-0">
 
         <h3 className="font-manrope font-semibold text-text-primary text-sm truncate">
@@ -83,7 +62,6 @@ export default function TaskCardList({ task, onEdit }: Props) {
         </div>
       </div>
 
-      {/* Droite : label statut + bouton */}
       <div className="flex flex-col items-end gap-2 shrink-0">
         <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[task.status]}`}>
           {statusLabel[task.status]}

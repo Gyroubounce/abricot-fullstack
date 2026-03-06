@@ -3,59 +3,28 @@
 import { useState, useRef, useEffect } from "react";
 import {
   CalendarIcon,
-  ChatBubbleLeftIcon,
   EllipsisVerticalIcon,
   ChevronDownIcon,
   ChevronUpIcon,
 } from "@heroicons/react/24/outline";
+import { formatDate } from "@/lib/utils/format";
+import { statusLabel, statusColor, priorityLabel } from "@/lib/utils/task";
+import { getInitials } from "@/lib/utils/initials";
 import type { Task } from "@/types/index";
-
-const statusLabel: Record<Task["status"], string> = {
-  TODO: "À faire",
-  IN_PROGRESS: "En cours",
-  DONE: "Terminée",
-  CANCELLED: "Annulée",
-};
-
-const statusColor: Record<Task["status"], string> = {
-  TODO: "bg-brand-light text-brand-dark",
-  IN_PROGRESS: "bg-blue-100 text-blue-700",
-  DONE: "bg-green-100 text-green-700",
-  CANCELLED: "bg-gray-100 text-gray-500",
-};
-
-const priorityLabel: Record<Task["priority"], string> = {
-  LOW: "Basse",
-  MEDIUM: "Moyenne",
-  HIGH: "Haute",
-  URGENT: "Urgente",
-};
-
-function formatDate(dateStr?: string): string {
-  if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-  });
-}
-
-function getInitials(name: string): string {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-}
 
 type Props = {
   task: Task;
+  ownerId: string;
   onDelete: (taskId: string) => void;
   onEdit: (task: Task) => void;
   onStatusChange: (taskId: string, status: Task["status"]) => void;
 };
 
-export default function TaskCard({ task, onDelete, onEdit, onStatusChange }: Props) {
+export default function TaskCard({ task, ownerId,onDelete, onEdit, onStatusChange }: Props) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Fermer le menu au clic extérieur
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -71,7 +40,6 @@ export default function TaskCard({ task, onDelete, onEdit, onStatusChange }: Pro
       className="bg-bg-content rounded-[8px] shadow-card px-5 py-4 flex flex-col gap-3"
       aria-label={`Tâche : ${task.title}`}
     >
-
       {/* Ligne 1 : titre + label + menu */}
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
@@ -101,7 +69,6 @@ export default function TaskCard({ task, onDelete, onEdit, onStatusChange }: Pro
               role="menu"
               className="absolute right-0 top-7 z-20 bg-bg-content border border-system-neutral rounded-[8px] shadow-modal w-40 py-1 overflow-hidden"
             >
-              {/* Changer statut */}
               {(["TODO", "IN_PROGRESS", "DONE", "CANCELLED"] as Task["status"][])
                 .filter((s) => s !== task.status)
                 .map((s) => (
@@ -204,7 +171,7 @@ export default function TaskCard({ task, onDelete, onEdit, onStatusChange }: Pro
         aria-controls={`comments-${task.id}`}
       >
         <span className="flex items-center gap-1.5">
-          <ChatBubbleLeftIcon className="h-3.5 w-3.5" aria-hidden="true" />
+          
           Commentaires ({task.comments.length})
         </span>
         {commentsOpen ? (
@@ -214,45 +181,47 @@ export default function TaskCard({ task, onDelete, onEdit, onStatusChange }: Pro
         )}
       </button>
 
-      {/* Liste commentaires */}
-      {commentsOpen && (
-        <div
-          id={`comments-${task.id}`}
-          className="flex flex-col gap-2"
-        >
-          {task.comments.length === 0 ? (
-            <p className="text-xs text-text-secondary">Aucun commentaire.</p>
-          ) : (
-            task.comments.map((comment) => (
+    {commentsOpen && (
+      <div id={`comments-${task.id}`} className="flex flex-col gap-2">
+        {task.comments.length === 0 ? (
+          <p className="text-xs text-text-secondary">Aucun commentaire.</p>
+        ) : (
+          task.comments.map((comment) => (
+            <div key={comment.id} className="flex items-start gap-2">
+
+              {/* Initiales — en dehors du container */}
               <div
-                key={comment.id}
-                className="flex flex-col gap-0.5 bg-bg-grey-light rounded-[8px] px-3 py-2"
+                className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 mt-1 ${
+                  comment.author.id === ownerId ? "bg-brand-light" : "bg-[#E5E7EB]"
+                }`}
+                aria-hidden="true"
               >
-                <div className="flex items-center gap-1.5">
-                  <div
-                    className="w-5 h-5 rounded-full bg-brand-light flex items-center justify-center"
-                    aria-hidden="true"
-                  >
-                    <span className="text-[10px] font-semibold text-text-primary">
-                      {getInitials(comment.author.name)}
-                    </span>
-                  </div>
+                <span className="text-[10px] font-semibold text-text-primary">
+                  {getInitials(comment.author.name)}
+                </span>
+              </div>
+
+              {/* Container commentaire */}
+              <div className="flex flex-col gap-0.5 bg-bg-grey-light rounded-[8px] px-3 py-2 flex-1">
+                <div className="flex items-center justify-between gap-2">
                   <span className="text-xs font-medium text-text-primary">
                     {comment.author.name}
                   </span>
                   <time
-                    className="text-[10px] text-text-secondary ml-auto"
+                    className="text-[10px] text-[#1F1F1F] shrink-0"
                     dateTime={comment.createdAt}
                   >
                     {formatDate(comment.createdAt)}
                   </time>
                 </div>
-                <p className="text-xs text-text-secondary pl-6">{comment.content}</p>
+                <p className="text-xs text-[#1F1F1F]">{comment.content}</p>
               </div>
-            ))
-          )}
-        </div>
-      )}
+
+            </div>
+          ))
+        )}
+      </div>
+    )}
 
     </div>
   );

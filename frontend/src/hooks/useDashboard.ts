@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { apiRequest } from "@/hooks/useApi";
+import { priorityOrder } from "@/lib/utils/task";
 import type { Project, Task, TaskAssignee, TaskWithProject } from "@/types/index";
 
 export function useDashboard() {
@@ -13,15 +14,12 @@ export function useDashboard() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchAll = useCallback(async () => {
-    console.log("fetchAll started");
     setLoading(true);
     setError(null);
 
     const { data: projectData, error: projectErr } = await apiRequest<{ projects: Project[] }>(
       "/projects"
     );
-
-     console.log("projects result:", projectData, projectErr);
 
     if (projectErr || !projectData) {
       setError(projectErr ?? "Erreur lors du chargement");
@@ -32,14 +30,11 @@ export function useDashboard() {
     const projectList = projectData.projects;
     setProjects(projectList);
 
-console.log("projects list:", projectData?.projects);
-
     const taskResults = await Promise.all(
       projectList.map(async (project) => {
         const { data } = await apiRequest<{ tasks: Task[] }>(
           `/projects/${project.id}/tasks`
         );
-          console.log(`tasks for project ${project.id}:`, data?.tasks);
         return (data?.tasks ?? []).map((task: Task) => ({
           ...task,
           projectName: project.name,
@@ -47,24 +42,20 @@ console.log("projects list:", projectData?.projects);
       })
     );
 
-
     const allTasks: TaskWithProject[] = taskResults.flat();
-
-    console.log("user.id:", user!.id);
-console.log("sample assignees:", JSON.stringify(allTasks[0]?.assignees));
-    const myTasks = allTasks.filter((task) =>
-      task.assignees.some((a: TaskAssignee) => a.user.id === user!.id)
-    );
-console.log("allTasks:", taskResults.flat());
-console.log("myTasks:", myTasks);
+    const myTasks = allTasks
+      .filter((task) =>
+        task.assignees.some((a: TaskAssignee) => a.user.id === user!.id)
+      )
+      .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
 
     setTasks(myTasks);
     setLoading(false);
   }, [user]);
 
   useEffect(() => {
-    console.log("useDashboard useEffect, user:", user);
     if (!user) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAll();
   }, [user, fetchAll]);
 

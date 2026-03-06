@@ -3,29 +3,9 @@
 import { FolderIcon, CalendarIcon, ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { formatDate } from "@/lib/utils/format";
+import { statusLabel, statusColor } from "@/lib/utils/task";
 import type { TaskWithProject } from "@/types/index";
-
-const statusColor: Record<TaskWithProject["status"], string> = {
-  TODO: "bg-brand-light text-brand-dark",
-  IN_PROGRESS: "bg-blue-100 text-blue-700",
-  DONE: "bg-green-100 text-green-700",
-  CANCELLED: "bg-gray-100 text-gray-500",
-};
-
-const statusLabel: Record<TaskWithProject["status"], string> = {
-  TODO: "À faire",
-  IN_PROGRESS: "En cours",
-  DONE: "Terminée",
-  CANCELLED: "Annulée",
-};
-
-function formatDate(dateStr?: string): string {
-  if (!dateStr) return "";
-  return new Date(dateStr).toLocaleDateString("fr-FR", {
-    day: "numeric",
-    month: "long",
-  });
-}
 
 type Props = {
   task: TaskWithProject;
@@ -55,7 +35,6 @@ export default function TaskCardKanban({ task, onEdit }: Props) {
       className="bg-bg-content rounded-[8px] shadow-card flex flex-col w-full"
       aria-label={`Tâche : ${task.title}`}
     >
-      {/* Zone drag — poignée uniquement sur le haut */}
       <div
         {...attributes}
         {...listeners}
@@ -100,7 +79,6 @@ export default function TaskCardKanban({ task, onEdit }: Props) {
         </div>
       </div>
 
-      {/* Zone cliquable — séparée des listeners drag */}
       <div className="px-4 pb-4">
         <button
           type="button"

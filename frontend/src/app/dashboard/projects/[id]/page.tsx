@@ -1,11 +1,21 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeftIcon, SparklesIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import StarAI from "@/app/assets/Star_AI.png";
+import StarFocus from "@/app/assets/Star_focus.png";
+import {
+  ArrowLeftIcon,
+  MagnifyingGlassIcon,
+  ListBulletIcon,
+  CalendarIcon,
+} from "@heroicons/react/24/outline";
 import { useProject } from "@/hooks/useProject";
 import { useAuth } from "@/hooks/useAuth";
 import { useModal } from "@/hooks/useModal";
+import { getInitials } from "@/lib/utils/initials";
+import { priorityOrder } from "@/lib/utils/task";
 import TaskCard from "@/components/projects/TaskCard";
 import EditProjectModal from "@/components/modals/EditProjectModal";
 import CreateTaskModal from "@/components/modals/CreateTaskModal";
@@ -13,10 +23,6 @@ import AITaskModal from "@/components/modals/AITaskModal";
 import type { Task } from "@/types/index";
 
 type FilterStatus = Task["status"] | "ALL";
-
-function getInitials(name: string): string {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-}
 
 export default function ProjectDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,7 +41,7 @@ export default function ProjectDetailPage() {
     deleteTask,
   } = useProject(id);
   const { isOpen, openModal, closeModal } = useModal();
-
+  const [aiHover, setAiHover] = useState(false);
   const [view, setView] = useState<"list" | "calendar">("list");
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("ALL");
@@ -45,10 +51,6 @@ export default function ProjectDetailPage() {
     fetchProject();
   }, [fetchProject]);
 
-  const priorityOrder: Record<Task["priority"], number> = {
-    URGENT: 0, HIGH: 1, MEDIUM: 2, LOW: 3,
-  };
-
   const filteredTasks = (project?.tasks ?? [])
     .filter((task) => {
       const matchSearch =
@@ -57,7 +59,11 @@ export default function ProjectDetailPage() {
       const matchStatus = filterStatus === "ALL" || task.status === filterStatus;
       return matchSearch && matchStatus;
     })
-    .sort((a, b) => priorityOrder[a.priority] - priorityOrder[b.priority]);
+    .sort((a, b) =>
+      view === "calendar"
+        ? new Date(a.dueDate ?? "").getTime() - new Date(b.dueDate ?? "").getTime()
+        : priorityOrder[a.priority] - priorityOrder[b.priority]
+    );
 
   async function handleAISubmit(
     aiTasks: { title: string; description: string; priority: Task["priority"] }[]
@@ -83,9 +89,7 @@ export default function ProjectDetailPage() {
     );
   }
 
-  const owner = project.members.find((m) => m.role === "OWNER");
-  const contributors = project.members.filter((m) => m.role !== "OWNER");
-  const isOwner = owner?.user.id === user?.id;
+  const isOwner = project.owner.id === user?.id;
 
   return (
     <div className="flex flex-col gap-6">
@@ -103,90 +107,112 @@ export default function ProjectDetailPage() {
           </button>
 
           <div className="flex flex-col gap-0.5">
-            <h1 className="font-manrope font-semibold text-[24px] text-text-primary">
+            <h1 className="font-semibold text-[24px] text-text-primary">
               {project.name}
             </h1>
             {isOwner && (
               <button
                 type="button"
                 onClick={() => openModal("editProject")}
-                className="text-xs text-brand-dark underline hover:opacity-80 transition self-start"
+                className="text-xs text-brand-dark underline hover:text-btn-black transition self-start"
               >
                 modifier
               </button>
             )}
+            {project.description && (
+              <p className="text-[18px] text-text-secondary mt-1">
+                {project.description}
+              </p>
+            )}
           </div>
         </div>
 
+        {/* Boutons Créer une tâche + IA */}
         <div className="flex items-center gap-2 shrink-0">
           <button
             type="button"
-            onClick={() => openModal("aiTask")}
-            className="flex items-center gap-1.5 px-3 py-2 border border-system-neutral bg-bg-content text-text-primary text-sm font-medium rounded-md hover:bg-bg-grey-light transition"
-            aria-label="Générer des tâches avec l'IA"
+            onClick={() => openModal("createTask")}
+            className="px-4 py-2 bg-btn-black text-text-white text-sm rounded-md hover:text-brand-dark hover:bg-bg-content border border-brand-dark transition"
           >
-            <SparklesIcon className="h-4 w-4 text-brand-dark" aria-hidden="true" />
-            IA
+            Créer une tâche
           </button>
 
           <button
             type="button"
-            onClick={() => openModal("createTask")}
-            className="px-4 py-2 bg-btn-black text-text-white text-sm font-medium rounded-md hover:opacity-90 transition"
+            onClick={() => openModal("aiTask")}
+            onMouseEnter={() => setAiHover(true)}
+            onMouseLeave={() => setAiHover(false)}
+            onFocus={() => setAiHover(true)}
+            onBlur={() => setAiHover(false)}
+            className="flex items-center gap-1.5 px-3 py-2  bg-brand-dark text-text-white text-sm  rounded-md hover:bg-bg-content hover:text-brand-dark border border-brand-dark transition"
+            aria-label="Générer des tâches avec l'IA"
           >
-            Créer une tâche
+            <Image
+              src={aiHover ? StarAI : StarFocus}
+              alt=""
+              width={16}
+              height={16}
+              aria-hidden="true"
+            />
+            IA
           </button>
         </div>
       </div>
 
       {/* Contributeurs */}
       <section
-        className="bg-bg-grey-light rounded-[8px] px-6 py-5 flex flex-col gap-4"
+        className="bg-bg-grey-light rounded-[8px] px-6 py-5"
         aria-labelledby="contributors-title"
       >
-        <h2
-          id="contributors-title"
-          className="font-manrope font-semibold text-text-primary text-base"
-        >
-          Contributeurs ({project.members.length})
-        </h2>
+        <div className="flex items-center justify-between gap-4">
+          <h2
+            id="contributors-title"
+            className="font-semibold text-text-primary text-base"
+          >
+            Contributeurs{" "}
+            <span className="text-text-secondary font-normal">
+              {project.members.length + 1} personnes
+            </span>
+          </h2>
 
-        <ul className="flex flex-col gap-3" aria-label="Liste des contributeurs">
-          {owner && (
-            <li className="flex items-center gap-3">
+          <ul className="flex flex-row flex-wrap gap-3" aria-label="Liste des contributeurs">
+
+            {/* Propriétaire */}
+            <li className="flex items-center gap-2">
               <div
                 className="w-8 h-8 rounded-full bg-brand-light flex items-center justify-center shrink-0"
                 aria-hidden="true"
               >
                 <span className="text-xs font-semibold text-text-primary">
-                  {getInitials(owner.user.name)}
+                  {getInitials(project.owner.name)}
                 </span>
               </div>
-              <div className="flex flex-col">
-                <span className="text-sm font-medium text-text-primary">
-                  {owner.user.name}
-                </span>
-                <span className="text-xs text-brand-dark bg-brand-light px-2 py-0.5 rounded-full w-fit">
+              <div className="flex items-center gap-1.5">
+                
+                <span className="text-xs text-brand-dark bg-brand-light px-2 py-0.5 rounded-full">
                   Propriétaire
                 </span>
               </div>
             </li>
-          )}
 
-          {contributors.map((member) => (
-            <li key={member.id} className="flex items-center gap-3">
-              <div
-                className="w-8 h-8 rounded-full bg-bg-grey-light border border-system-neutral flex items-center justify-center shrink-0"
-                aria-hidden="true"
-              >
-                <span className="text-xs font-semibold text-text-primary">
-                  {getInitials(member.user.name)}
+            {/* Contributeurs */}
+            {project.members.map((member) => (
+              <li key={member.id} className="flex items-center gap-2">
+                <div
+                  className="w-8 h-8 rounded-full bg-system-neutral border border-system-neutral flex items-center justify-center shrink-0"
+                  aria-hidden="true"
+                >
+                  <span className="text-xs font-semibold text-text-primary">
+                    {getInitials(member.user.name)}
+                  </span>
+                </div>
+                <span className="text-sm text-text-primary bg-system-neutral px-2 py-0.5 rounded-full">
+                  {member.user.name}
                 </span>
-              </div>
-              <span className="text-sm text-text-primary">{member.user.name}</span>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
 
       {/* Tâches */}
@@ -197,40 +223,44 @@ export default function ProjectDetailPage() {
         <div className="flex flex-col gap-4">
           <h2
             id="tasks-title"
-            className="font-manrope font-semibold text-text-primary text-base"
+            className="font-semibold text-text-primary text-base"
           >
             Tâches
           </h2>
 
           <div className="flex items-center justify-between flex-wrap gap-3">
-            <p className="text-xs text-text-secondary">Par ordre de priorité</p>
+            <p className="text-xs text-text-secondary">
+              {view === "list" ? "Par ordre de priorité" : "Par ordre d'échéance"}
+            </p>
 
             <div className="flex items-center gap-2 flex-wrap">
 
-              {/* Vue */}
+              {/* Vue Liste / Calendrier */}
               <div className="flex gap-1" role="group" aria-label="Mode d'affichage">
                 <button
                   type="button"
                   onClick={() => setView("list")}
                   aria-pressed={view === "list" ? ("true" as const) : ("false" as const)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition ${
                     view === "list"
-                      ? "bg-btn-black text-text-white"
-                      : "bg-bg-grey-light text-text-secondary hover:bg-system-neutral"
+                      ? "bg-brand-light text-brand-dark"
+                      : "bg-white text-brand-dark hover:border border-brand-dark"
                   }`}
                 >
+                  <ListBulletIcon className="h-3.5 w-3.5" aria-hidden="true" />
                   Liste
                 </button>
                 <button
                   type="button"
                   onClick={() => setView("calendar")}
                   aria-pressed={view === "calendar" ? ("true" as const) : ("false" as const)}
-                  className={`px-3 py-1.5 text-xs font-medium rounded-md transition ${
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition ${
                     view === "calendar"
-                      ? "bg-btn-black text-text-white"
-                      : "bg-bg-grey-light text-text-secondary hover:bg-system-neutral"
+                      ? "bg-brand-light text-brand-dark"
+                      : "bg-white text-brand-dark hover:border border-brand-dark"
                   }`}
                 >
+                  <CalendarIcon className="h-3.5 w-3.5" aria-hidden="true" />
                   Calendrier
                 </button>
               </div>
@@ -279,10 +309,11 @@ export default function ProjectDetailPage() {
             {filteredTasks.map((task) => (
               <li key={task.id}>
                 <TaskCard
+                  ownerId={project.owner.id}
                   task={task}
                   onDelete={deleteTask}
-                  onEdit={(task) => {
-                    setEditingTask(task);
+                  onEdit={(t) => {
+                    setEditingTask(t);
                     openModal("editTask");
                   }}
                   onStatusChange={updateTaskStatus}
@@ -318,12 +349,14 @@ export default function ProjectDetailPage() {
       {isOpen("editTask") && editingTask && (
         <CreateTaskModal
           members={project.members}
+          initialTask={editingTask}
           onClose={() => {
             closeModal();
             setEditingTask(null);
           }}
           onSubmit={async (title, description, dueDate, assigneeIds, status, priority) => {
             await updateTaskStatus(editingTask.id, status);
+            closeModal();
             setEditingTask(null);
           }}
         />

@@ -3,20 +3,14 @@
 import { useState, useEffect } from "react";
 import { CalendarIcon } from "@heroicons/react/24/outline";
 import ContributorSearch from "@/components/ui/ContributorSearch";
+import { statusLabel, priorityLabel } from "@/lib/utils/task";
 import type { Task, User, ProjectMember } from "@/types/index";
 
-const statusOptions: { value: Task["status"]; label: string }[] = [
-  { value: "TODO", label: "À faire" },
-  { value: "IN_PROGRESS", label: "En cours" },
-  { value: "DONE", label: "Terminée" },
-];
+const statusOptions = (Object.entries(statusLabel) as [Task["status"], string][]).filter(
+  ([value]) => value !== "CANCELLED"
+);
 
-const priorityOptions: { value: Task["priority"]; label: string }[] = [
-  { value: "LOW", label: "Basse" },
-  { value: "MEDIUM", label: "Moyenne" },
-  { value: "HIGH", label: "Haute" },
-  { value: "URGENT", label: "Urgente" },
-];
+const priorityOptions = (Object.entries(priorityLabel) as [Task["priority"], string][]);
 
 type Props = {
   initialTask?: Partial<Task>;
@@ -51,7 +45,6 @@ export default function TaskForm({
   const [priority, setPriority] = useState<Task["priority"]>(initialTask?.priority ?? "MEDIUM");
   const [selectedAssignees, setSelectedAssignees] = useState<User[]>([]);
 
-  // Pré-remplir les assignés si édition
   useEffect(() => {
     if (initialTask?.assignees) {
       setSelectedAssignees(initialTask.assignees.map((a) => a.user));
@@ -78,7 +71,6 @@ export default function TaskForm({
     );
   }
 
-  // Membres filtrés pour ContributorSearch (membres du projet uniquement)
   const memberUsers: User[] = members.map((m) => m.user);
   const excludeUserIds = selectedAssignees.map((u) => u.id);
 
@@ -142,7 +134,7 @@ export default function TaskForm({
         </div>
       </div>
 
-      {/* Assigné à — recherche parmi les membres du projet */}
+      {/* Assigné à */}
       <ContributorSearch
         selectedUsers={selectedAssignees}
         excludeUserIds={excludeUserIds}
@@ -150,7 +142,6 @@ export default function TaskForm({
         onRemove={removeAssignee}
         label="Assigné à"
         placeholder="Rechercher un membre du projet"
-        // Surcharge : recherche locale parmi les membres uniquement
         localUsers={memberUsers}
       />
 
@@ -158,19 +149,19 @@ export default function TaskForm({
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium text-text-primary">Statut</span>
         <div className="flex gap-2 flex-wrap" role="group" aria-label="Statut de la tâche">
-          {statusOptions.map((opt) => (
+          {statusOptions.map(([value, label]) => (
             <button
-              key={opt.value}
+              key={value}
               type="button"
-              onClick={() => setStatus(opt.value)}
-              aria-pressed={status === opt.value ? ("true" as const) : ("false" as const)}
+              onClick={() => setStatus(value)}
+              aria-pressed={status === value ? ("true" as const) : ("false" as const)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
-                status === opt.value
+                status === value
                   ? "bg-btn-black text-text-white"
                   : "bg-bg-grey-light text-text-secondary hover:bg-system-neutral"
               }`}
             >
-              {opt.label}
+              {label}
             </button>
           ))}
         </div>
@@ -180,19 +171,19 @@ export default function TaskForm({
       <div className="flex flex-col gap-1">
         <span className="text-sm font-medium text-text-primary">Priorité</span>
         <div className="flex gap-2 flex-wrap" role="group" aria-label="Priorité de la tâche">
-          {priorityOptions.map((opt) => (
+          {priorityOptions.map(([value, label]) => (
             <button
-              key={opt.value}
+              key={value}
               type="button"
-              onClick={() => setPriority(opt.value)}
-              aria-pressed={priority === opt.value ? ("true" as const) : ("false" as const)}
+              onClick={() => setPriority(value)}
+              aria-pressed={priority === value ? ("true" as const) : ("false" as const)}
               className={`px-3 py-1.5 rounded-full text-xs font-medium transition ${
-                priority === opt.value
+                priority === value
                   ? "bg-btn-black text-text-white"
                   : "bg-bg-grey-light text-text-secondary hover:bg-system-neutral"
               }`}
             >
-              {opt.label}
+              {label}
             </button>
           ))}
         </div>

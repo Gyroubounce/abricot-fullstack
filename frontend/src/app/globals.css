@@ -19,6 +19,10 @@
   --color-text-primary: #1F1F1F;
   --color-text-secondary: #6B7280;
   --color-text-white: #FFFFFF;
+  --color-text-success: #27AE60;
+  --color-text-error: #EF4444;
+  --color-text-warning: #E08D00;
+  --color-text-info: #3B82F6;
 
   /* Backgrounds */
   --color-bg-dashboard: #F9FAFB;
@@ -30,10 +34,10 @@
 
 
   /* System colors */
-  --color-system-success: #22C55E;
-  --color-system-error: #EF4444;
-  --color-system-warning: #F59E0B;
-  --color-system-info: #3B82F6;
+  --color-system-success: #F1FFF7;
+  --color-system-error: #FFE0E0;
+  --color-system-warning: #FFF0D7;
+  --color-system-info: #E0ECFF;
   --color-system-neutral: #E5E7EB;
 
   /* Radius */
