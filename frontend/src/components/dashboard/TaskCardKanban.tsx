@@ -1,6 +1,8 @@
 "use client";
 
-import { FolderIcon, CalendarIcon, ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
+import FolderIcon from "@/components/ui/icons/FolderIcon";
+import CalenderIcon from "@/components/ui/icons/CalenderIcon";
+import CommentsIcon from "@/components/ui/icons/CommentsIcon";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { formatDate } from "@/lib/utils/format";
@@ -32,58 +34,64 @@ export default function TaskCardKanban({ task, onEdit }: Props) {
     <div
       ref={setNodeRef}
       style={style}
-      className="bg-bg-content rounded-[8px] shadow-card flex flex-col w-full"
+      className="bg-bg-content rounded-[8px] shadow-card flex flex-col w-full border border-bg-grey-border"
       aria-label={`Tâche : ${task.title}`}
     >
       <div
         {...attributes}
         {...listeners}
-        className="px-4 pt-4 pb-2 cursor-grab active:cursor-grabbing flex flex-col gap-3"
+        className="px-6 pt-4 pb-2 cursor-grab active:cursor-grabbing flex flex-col gap-1"
       >
-        <span className={`self-start text-xs font-medium px-2.5 py-1 rounded-full ${statusColor[task.status]}`}>
-          {statusLabel[task.status]}
-        </span>
-
-        <h3 className="font-semibold text-text-primary text-sm">
-          {task.title}
-        </h3>
-
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="font-semibold text-black text-[18px]">
+            {task.title}
+          </h3>
+          <span className={`mb-5 shrink-0 text-xs font-medium px-2 py-1 rounded-full ${statusColor[task.status]}`}>
+            {statusLabel[task.status]}
+          </span>
+        </div>
         {task.description && (
-          <p className="text-xs text-text-secondary line-clamp-3">
+          <p className="text-[14px] text-text-secondary line-clamp-3">
             {task.description}
           </p>
         )}
 
-        <div className="flex flex-col gap-1 text-xs text-text-secondary">
+        <div className="flex items-center gap-2 text-xs text-text-secondary flex-wrap my-5">
           <span className="flex items-center gap-1">
             <FolderIcon className="h-3.5 w-3.5" aria-hidden="true" />
             {task.projectName}
           </span>
 
           {task.dueDate && (
+            <>
+            <span aria-hidden="true" className="w-px h-2 bg-text-secondary inline-block" />
             <span className="flex items-center gap-1">
-              <CalendarIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              <CalenderIcon className="h-3.5 w-3.5" aria-hidden="true" />
               <time dateTime={task.dueDate}>{formatDate(task.dueDate)}</time>
             </span>
+            </>
           )}
 
           {task.comments.length > 0 && (
+              <>
+              <span aria-hidden="true" className="w-px h-2 bg-text-secondary inline-block" />
             <span
               className="flex items-center gap-1"
               aria-label={`${task.comments.length} commentaire${task.comments.length > 1 ? "s" : ""}`}
             >
-              <ChatBubbleLeftIcon className="h-3.5 w-3.5" aria-hidden="true" />
+              <CommentsIcon className="h-3.5 w-3.5" aria-hidden="true" />
               {task.comments.length}
             </span>
+              </>
           )}
         </div>
       </div>
 
-      <div className="px-4 pb-4">
+      <div className="px-6 pb-5">
         <button
           type="button"
           onClick={() => onEdit(task)}
-          className="mt-1 text-xs bg-btn-black text-text-white hover:text-brand-dark hover:bg-bg-content hover:border-brand-dark focus:ring-2 focus:ring-brand-dark rounded-md px-3 py-1 transition"
+          className="text-xs bg-btn-black w-30.25 h-12.5 text-text-white hover:text-brand-dark hover:bg-bg-content hover:border border-brand-dark focus:ring-2 focus:ring-brand-dark rounded-md px-3 py-1 transition"
           aria-label={`Modifier la tâche ${task.title}`}
         >
           Voir

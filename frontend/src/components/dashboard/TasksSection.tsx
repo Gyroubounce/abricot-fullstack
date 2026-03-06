@@ -17,6 +17,7 @@ import KanbanColumn from "@/components/dashboard/KanbanColumn";
 import CreateTaskModal from "@/components/modals/CreateTaskModal";
 import type { TaskWithProject, Project, ProjectMember } from "@/types/index";
 import { useTaskFilters } from "@/hooks/useTaskFilters";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 
 const COLUMNS: { id: TaskWithProject["status"]; label: string }[] = [
   { id: "TODO", label: "À faire" },
@@ -89,31 +90,22 @@ export default function TasksSection({
 
   return (
     <section aria-labelledby="tasks-title">
-      <div className="bg-bg-content rounded-[8px] shadow-card px-6 py-5 flex flex-col gap-4">
+      <div className="bg-bg-content rounded-[8px] shadow-card px-6 py-5 flex flex-col gap-6">
 
         {/* En-tête */}
-        <div className="flex items-center justify-between flex-wrap gap-3">
+        <div className="flex items-center justify-between flex-wrap gap-3 my-3">
           <div className="flex flex-col gap-0.5">
             <h2
               id="tasks-title"
-              className="text-[20px] font-manrope font-semibold text-text-primary"
+              className="text-[18px] font-semibold text-text-primary"
             >
               Mes tâches assignées
             </h2>
-            <p className="text-xs text-text-secondary">Par ordre de priorité</p>
+            <p className="text-[16px] text-text-secondary">Par ordre de priorité</p>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap">
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher une tâche..."
-              className="pl-4 pr-4 py-2 text-sm border border-system-neutral rounded-[8px] bg-bg-content text-text-primary w-56 transition"
-              aria-label="Rechercher une tâche"
-            />
-
-            <select
+                       <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value as typeof filterStatus)}
               className="text-sm border border-system-neutral rounded-[8px] px-3 py-2 bg-bg-content text-text-primary transition"
@@ -138,6 +130,22 @@ export default function TasksSection({
               <option value="MEDIUM">Moyenne</option>
               <option value="LOW">Basse</option>
             </select>
+
+             <div className="relative">
+              <input
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Rechercher une tâche"
+                className="pl-4 pr-4 py-2 text-sm border border-system-neutral rounded-[8px] bg-bg-content text-text-primary w-56 transition"
+                aria-label="Rechercher une tâche"
+              />
+              <MagnifyingGlassIcon
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-text-secondary pointer-events-none"
+                  aria-hidden="true"
+                />
+              </div>
+
           </div>
         </div>
 
@@ -178,12 +186,12 @@ export default function TasksSection({
             collisionDetection={closestCenter}
             onDragEnd={handleDragEnd}
           >
-            <div className="grid grid-cols-3 gap-4" role="region" aria-label="Vue Kanban">
+            <div className="flex gap-4 items-start mt-4 pb-4" role="region" aria-label="Vue Kanban">
               {COLUMNS.map((col) => (
                 <KanbanColumn
                   key={col.id}
                   id={col.id}
-                  title={`${col.label} (${filteredTasks.filter((t) => t.status === col.id).length})`}
+                  title={col.label}
                   tasks={filteredTasks.filter((t) => t.status === col.id)}
                   onEdit={handleEdit}
                 />

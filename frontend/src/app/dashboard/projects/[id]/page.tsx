@@ -240,7 +240,7 @@ export default function ProjectDetailPage() {
                 <button
                   type="button"
                   onClick={() => setView("list")}
-                  aria-pressed={view === "list" ? ("true" as const) : ("false" as const)}
+                  aria-pressed="false"
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition ${
                     view === "list"
                       ? "bg-brand-light text-brand-dark"
@@ -253,7 +253,7 @@ export default function ProjectDetailPage() {
                 <button
                   type="button"
                   onClick={() => setView("calendar")}
-                  aria-pressed={view === "calendar" ? ("true" as const) : ("false" as const)}
+                  aria-pressed="false"
                   className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-md transition ${
                     view === "calendar"
                       ? "bg-brand-light text-brand-dark"
@@ -354,7 +354,7 @@ export default function ProjectDetailPage() {
             closeModal();
             setEditingTask(null);
           }}
-          onSubmit={async (title, description, dueDate, assigneeIds, status, priority) => {
+          onSubmit={async (title, description, dueDate, assigneeIds, status) => {
             await updateTaskStatus(editingTask.id, status);
             closeModal();
             setEditingTask(null);

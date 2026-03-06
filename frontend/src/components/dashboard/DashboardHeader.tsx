@@ -16,15 +16,15 @@ export default function DashboardHeader({
   onViewChange,
 }: Props) {
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-12 my-8">
 
       {/* Titre + bouton */}
       <div className="flex items-center justify-between">
         <div className="flex flex-col gap-1">
-          <h1 className="text-[28px] font-semibold text-text-primary">
+          <h1 className="text-[24px] font-semibold text-text-primary">
             Tableau de bord
           </h1>
-          <p className="text-sm text-text-secondary">
+          <p className="text-[18px] text-black">
             Bonjour {name}, voici un aperçu de vos projets et tâches.
           </p>
         </div>
@@ -32,7 +32,7 @@ export default function DashboardHeader({
         <button
           type="button"
           onClick={onCreateProject}
-          className="px-4 py-2 rounded-md bg-brand-dark text-white font-manrope text-sm hover:opacity-90 transition"
+          className="px-4 py-2 w-45.25 h-12.5 rounded-md bg-btn-2-Black text-white text-[16px] hover:text-brand-dark hover:bg-bg-content hover:border border-brand-dark transition"
           aria-label="Créer un nouveau projet"
         >
           + Créer un projet
@@ -44,8 +44,8 @@ export default function DashboardHeader({
         <button
           type="button"
           onClick={() => onViewChange("list")}
-          aria-pressed={view === "list" ? ("true" as const) : ("false" as const)}
-          className={`px-4 py-2 rounded-md flex items-center gap-2 text-sm transition ${
+          aria-pressed="false"
+          className={`px-4 py-2 w-23.5 h-11.25 rounded-md flex items-center gap-2 text-sm transition ${
             view === "list"
               ? "bg-brand-light text-brand-dark font-medium"
               : "bg-bg-content text-text-secondary hover:bg-brand-light hover:text-brand-dark"
@@ -58,8 +58,8 @@ export default function DashboardHeader({
         <button
           type="button"
           onClick={() => onViewChange("kanban")}
-          aria-pressed={view === "kanban" ? ("true" as const) : ("false" as const)}
-          className={`px-4 py-2 rounded-md flex items-center gap-2 text-sm transition ${
+          aria-pressed="false"
+          className={`px-3 py-2 w-23.5 h-11.25 rounded-md flex items-center gap-2 text-sm transition ${
             view === "kanban"
               ? "bg-brand-light text-brand-dark font-medium"
               : "bg-bg-content text-text-secondary hover:bg-brand-light hover:text-brand-dark"

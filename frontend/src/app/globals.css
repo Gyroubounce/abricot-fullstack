@@ -28,9 +28,13 @@
   --color-bg-dashboard: #F9FAFB;
   --color-bg-content: #FFFFFF;
   --color-bg-grey-light: #F3F4F6;
+  --color-bg-grey-border: #E5E7EB;
 
   /* Other colors */
-  --color-btn-black: #000000;
+  --color-btn-black: #0f0f0f;
+  --color-btn-2-Black: #1f1f1f;
+  --color-police-black: #000000;
+  --color-police-grey: #6B7280;
 
 
   /* System colors */

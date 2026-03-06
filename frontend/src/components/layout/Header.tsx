@@ -22,7 +22,7 @@ export default function Header() {
 
   return (
     <header className="w-full bg-white flex justify-center">
-      <div className="max-w-303.75 w-full py-1 flex items-center justify-between px-4">
+      <div className="max-w-303.75 w-full h-[94px] flex items-center justify-between px-4">
 
         {/* Logo */}
         <Link

@@ -15,11 +15,11 @@ export default function KanbanColumn({ id, title, tasks, onEdit }: Props) {
 
   return (
     <section
-      aria-label={`Colonne ${title} — ${tasks.length} tâche${tasks.length > 1 ? "s" : ""}`}
-      className="flex flex-col gap-3 flex-1 min-w-0"
+      aria-label={`Colonne ${title} —  tâche${tasks.length > 1 ? "s" : ""}`}
+      className="flex flex-col gap-3 w-93.75"
     >
-      <div className="flex items-center justify-between px-1">
-        <h3 className="font-semibold text-text-primary text-sm">
+      <div className="flex items-center px-1">
+        <h3 className="font-semibold text-text-primary text-[18px]">
           {title}
         </h3>
         <span
@@ -32,8 +32,8 @@ export default function KanbanColumn({ id, title, tasks, onEdit }: Props) {
 
       <div
         ref={setNodeRef}
-        className={`rounded-[8px] p-2 min-h-50 transition-colors ${
-          isOver ? "bg-brand-light" : "bg-bg-grey-light"
+        className={`rounded-[8px] min-h-50 transition-colors ${
+          isOver ? "bg-brand-light" : "bg-bg-content"
         }`}
       >
         <SortableContext
