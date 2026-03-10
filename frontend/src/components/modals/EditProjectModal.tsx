@@ -3,12 +3,13 @@
 import { useState } from "react";
 import BaseModal from "@/components/modals/BaseModal";
 import ProjectForm from "@/components/forms/ProjectForm";
-import type { ProjectMember } from "@/types/index";
+import type { ProjectMember, User } from "@/types/index";
 
 type Props = {
   initialName: string;
   initialDescription: string;
   initialMembers: ProjectMember[];
+  ownerId: string; // 
   onClose: () => void;
   onSubmit: (name: string, description: string) => Promise<void>;
   onAddContributor: (email: string) => Promise<void>;
@@ -23,9 +24,11 @@ export default function EditProjectModal({
   onSubmit,
   onAddContributor,
   onRemoveContributor,
+  ownerId,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedContributors, setSelectedContributors] = useState<User[]>([]);
 
   async function handleSubmit(name: string, description: string) {
     setError(null);
@@ -41,17 +44,21 @@ export default function EditProjectModal({
     }
   }
 
-  async function handleAddContributor(user: { email: string }) {
+  // ✅ Reçoit un User complet
+  async function handleAddContributor(user: User) {
     try {
       await onAddContributor(user.email);
+      setSelectedContributors((prev) => [...prev, user]);
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
     }
   }
 
+  // ✅ Retire aussi du state local
   async function handleRemoveContributor(userId: string) {
     try {
       await onRemoveContributor(userId);
+      setSelectedContributors((prev) => prev.filter((u) => u.id !== userId));
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
     }
@@ -69,6 +76,8 @@ export default function EditProjectModal({
         onSubmit={handleSubmit}
         onAddContributor={handleAddContributor}
         onRemoveContributor={handleRemoveContributor}
+        selectedContributors={selectedContributors}
+        ownerId={ownerId}
       />
     </BaseModal>
   );

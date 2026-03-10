@@ -331,6 +331,7 @@ export default function ProjectDetailPage() {
           initialName={project.name}
           initialDescription={project.description ?? ""}
           initialMembers={project.members}
+          ownerId={project.owner.id}
           onClose={closeModal}
           onSubmit={updateProject}
           onAddContributor={addContributor}

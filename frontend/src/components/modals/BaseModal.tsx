@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { XMarkIcon } from "@heroicons/react/24/outline";
+import type { ReactNode } from "react";
 
 type Props = {
   id: string;
@@ -9,6 +10,7 @@ type Props = {
   onClose: () => void;
   children: React.ReactNode;
   maxWidth?: string;
+  icon?: ReactNode;
 };
 
 export default function BaseModal({
@@ -17,6 +19,7 @@ export default function BaseModal({
   onClose,
   children,
   maxWidth = "max-w-149.5",
+  icon
 }: Props) {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -50,12 +53,15 @@ export default function BaseModal({
             <XMarkIcon className="h-5 w-5" />
           </button>
         </div>
-        <h2
-          id={id}
-          className="font-semibold text-text-primary text-2xl mt-2"
-        >
-          {title}
-        </h2>
+        <div className="flex items-center ml-12 gap-2">
+          {icon && <div className="mt-2.5">{icon}</div>}
+          <h2
+            id={id}
+            className="font-semibold text-text-primary text-2xl mt-2"
+          >
+            {title}
+          </h2> 
+        </div>       
       </div>
 
         {/* Contenu */}

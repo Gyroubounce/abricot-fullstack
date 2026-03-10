@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { MagnifyingGlassIcon, XCircleIcon } from "@heroicons/react/24/outline";
+import { useState, useEffect } from "react";
 import { getInitials } from "@/lib/utils/initials";
-import { searchUsers } from "@/lib/api/users";
+import { getUsers } from "@/lib/api/users";
 import type { User } from "@/types/index";
 
 type Props = {
@@ -12,8 +11,7 @@ type Props = {
   onAdd: (user: User) => void;
   onRemove: (userId: string) => void;
   label?: string;
-  placeholder?: string;
-  localUsers?: User[];
+  ownerId?: string; // ✅ Ajout du ownerId
 };
 
 export default function ContributorSearch({
@@ -22,151 +20,109 @@ export default function ContributorSearch({
   onAdd,
   onRemove,
   label = "Contributeurs",
-  placeholder = "Rechercher par nom ou email",
-  localUsers,
+  ownerId, // ✅ Ajout du ownerId
 }: Props) {
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<User[]>([]);
-  const [searching, setSearching] = useState(false);
-  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const listboxId = useRef(`contributor-listbox-${Math.random().toString(36).slice(2)}`);
+  const [isOpen, setIsOpen] = useState(false);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    if (!query || query.length < 1) {
-      setResults([]);
-      return;
-    }
+    getUsers().then((users) => setAllUsers(users));
+  }, []);
 
-    if (searchTimeout.current) clearTimeout(searchTimeout.current);
-
-    if (localUsers) {
-      const filtered = localUsers.filter(
-        (u) =>
-          !selectedUsers.some((s) => s.id === u.id) &&
-          !excludeUserIds.includes(u.id) &&
-          (u.name.toLowerCase().includes(query.toLowerCase()) ||
-            u.email.toLowerCase().includes(query.toLowerCase()))
-      );
-      setResults(filtered);
-      return;
-    }
-
-    if (query.length < 2) return;
-
-    searchTimeout.current = setTimeout(async () => {
-      setSearching(true);
-      try {
-        const { data } = await searchUsers(query);
-        if (data) {
-          const filtered = data.users.filter(
-            (u: User) =>
-              !selectedUsers.some((s) => s.id === u.id) &&
-              !excludeUserIds.includes(u.id)
-          );
-          setResults(filtered);
-        }
-      } catch {
-        setResults([]);
-      } finally {
-        setSearching(false);
-      }
-    }, 300);
-  }, [query, selectedUsers, excludeUserIds, localUsers]);
+  const availableUsers = allUsers.filter(
+    (u) =>
+      !selectedUsers.find((s) => s.id === u.id) &&
+      !excludeUserIds.includes(u.id)
+  );
 
   function handleAdd(user: User) {
     onAdd(user);
-    setQuery("");
-    setResults([]);
+    setIsOpen(false);
   }
 
   return (
-    <div className="flex flex-col gap-2">
-      <span className="text-sm font-medium text-text-primary">{label}</span>
+    <div className="flex flex-col gap-1">
+      <span className="text-sm text-text-primary">{label}</span>
 
+      {/* Contributeurs sélectionnés */}
       {selectedUsers.length > 0 && (
-        <div className="flex flex-wrap gap-2" aria-label="Contributeurs sélectionnés">
-          {selectedUsers.map((user) => (
+        <div className="flex flex-wrap gap-2 mb-1">
+          {selectedUsers.map((u) => (
             <div
-              key={user.id}
-              className="flex items-center gap-1.5 bg-bg-grey-light px-2.5 py-1 rounded-full"
+              key={u.id}
+              className="flex items-center gap-1.5 bg-bg-grey-light rounded-full px-2 py-1"
             >
-              <div
-                className="w-5 h-5 rounded-full bg-brand-light flex items-center justify-center"
-                aria-hidden="true"
-              >
-                <span className="text-[10px] font-semibold text-text-primary">
-                  {getInitials(user.name)}
+              <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 ${
+                u.id === ownerId ? "bg-brand-light" : "bg-bg-grey-border"
+              }`}>
+                <span className={`text-[9px] ${
+                  u.id === ownerId ? "text-text-primary" : "text-text-secondary"
+                }`}>
+                  {getInitials(u.name)}
                 </span>
               </div>
-              <span className="text-xs text-text-primary">{user.name}</span>
+              <span className="text-xs text-text-primary">{u.name}</span>
               <button
                 type="button"
-                onClick={() => onRemove(user.id)}
-                className="text-text-secondary hover:text-system-error transition"
-                aria-label={`Retirer ${user.name}`}
+                onClick={() => onRemove(u.id)}
+                className="text-text-secondary hover:text-system-error text-xs ml-0.5"
+                aria-label={`Retirer ${u.name}`}
               >
-                <XCircleIcon className="h-3.5 w-3.5" />
+                ×
               </button>
             </div>
           ))}
         </div>
       )}
 
+      {/* Dropdown de sélection */}
       <div className="relative">
-        <MagnifyingGlassIcon
-          className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-text-secondary"
-          aria-hidden="true"
-        />
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full border border-system-neutral rounded-[8px] pl-9 pr-4 py-2.5 text-sm text-text-primary bg-bg-content transition"
-          placeholder={placeholder}
-          autoComplete="off"
-          aria-label={`Rechercher un ${label.toLowerCase()}`}
-          aria-controls={listboxId.current}
-          aria-expanded={results.length > 0 || searching}
-          role="combobox"
-          aria-autocomplete="list"
-          aria-haspopup="listbox"
-        />
-
-        {(results.length > 0 || searching) && (
-          <div
-            id={listboxId.current}
-            role="listbox"
-            aria-label="Résultats de recherche"
-            className="absolute z-10 w-full mt-1 bg-bg-content border border-system-neutral rounded-[8px] shadow-modal overflow-hidden"
+        <button
+          type="button"
+          onClick={() => setIsOpen((v) => !v)}
+          className="w-full flex items-center justify-between border border-system-neutral rounded-[8px] px-4 py-3 text-sm bg-bg-content transition"
+        >
+          <span className="text-text-secondary">Choisir un nouveau collaborateur</span>
+          <svg
+            className={`h-4 w-4 text-[#6B7280] transition-transform ${
+              isOpen ? "rotate-180" : ""
+            }`}
+            viewBox="0 0 20 20"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
           >
-            {searching && (
-              <div className="px-4 py-2.5 text-sm text-text-secondary">
-                Recherche...
-              </div>
-            )}
-            {!searching && results.map((user) => (
-              <div
-                key={user.id}
-                role="option"
-                aria-selected="false"
-                tabIndex={0}
-                onClick={() => handleAdd(user)}
-                onKeyDown={(e) => e.key === "Enter" && handleAdd(user)}
-                className="flex items-center gap-3 px-4 py-2.5 hover:bg-bg-grey-light transition cursor-pointer"
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 8l5 5 5-5" />
+          </svg>
+        </button>
+
+        {/* Liste des utilisateurs disponibles */}
+        {isOpen && availableUsers.length > 0 && (
+          <div className="absolute top-full left-0 right-0 z-20 bg-bg-content border border-system-neutral rounded-[8px] shadow-modal mt-1 overflow-hidden max-h-48 overflow-y-auto">
+            {availableUsers.map((u) => (
+              <button
+                key={u.id}
+                type="button"
+                onClick={() => handleAdd(u)}
+                className="w-full flex items-center gap-2 px-4 py-2 text-sm text-text-secondary hover:bg-bg-grey-light transition"
               >
-                <div
-                  className="w-7 h-7 rounded-full bg-bg-grey-light flex items-center justify-center shrink-0"
-                  aria-hidden="true"
-                >
-                  <span className="text-xs font-semibold text-text-primary">
-                    {getInitials(user.name)}
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                  u.id === ownerId ? "bg-brand-light" : "bg-bg-grey-border"
+                }`}>
+                  <span className={`text-[9px] font-semibold ${
+                    u.id === ownerId ? "text-text-primary" : "text-text-secondary"
+                  }`}>
+                    {getInitials(u.name)}
                   </span>
                 </div>
-                <div className="flex flex-col">
-                  <span className="text-sm text-text-primary">{user.name}</span>
-                  <span className="text-xs text-text-secondary">{user.email}</span>
-                </div>
-              </div>
+                <span className={`px-2 py-0.5 rounded-full text-sm ${
+                  u.id === ownerId 
+                    ? "bg-brand-light text-text-primary" 
+                    : "bg-bg-grey-border text-text-secondary"
+                }`}>
+                  {u.name}
+                </span>
+              </button>
             ))}
           </div>
         )}

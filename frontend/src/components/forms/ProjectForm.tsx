@@ -16,6 +16,7 @@ type Props = {
   onAddContributor?: (user: User) => void;
   onRemoveContributor?: (userId: string) => void;
   selectedContributors?: User[];
+  ownerId?: string;
 };
 
 export default function ProjectForm({
@@ -29,6 +30,7 @@ export default function ProjectForm({
   onAddContributor,
   onRemoveContributor,
   selectedContributors = [],
+  ownerId,
 }: Props) {
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
@@ -89,7 +91,7 @@ export default function ProjectForm({
                 className="flex items-center gap-1.5 bg-bg-grey-light px-2.5 py-1 rounded-full"
               >
                 <div
-                  className="w-5 h-5 rounded-full bg-brand-light flex items-center justify-center"
+                  className="w-5 h-5 rounded-full bg-bg-grey-border flex items-center justify-center"
                   aria-hidden="true"
                 >
                   <span className="text-[10px] font-semibold text-text-primary">
@@ -119,6 +121,7 @@ export default function ProjectForm({
           onAdd={onAddContributor}
           onRemove={onRemoveContributor}
           label="Ajouter un contributeur"
+          ownerId={ownerId} 
         />
       )}
 

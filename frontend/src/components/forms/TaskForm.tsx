@@ -4,7 +4,6 @@ import { getUsers } from "@/lib/api/users";
 import { useEffect, useState } from "react";
 import { getInitials } from "@/lib/utils/initials";
 import { statusLabel, statusColor } from "@/lib/utils/task";
-import CalenderIcon from "@/components/ui/icons/CalenderIcon";
 import type { Task, User, ProjectMember } from "@/types/index";
 
 const statusOptions = (Object.entries(statusLabel) as [Task["status"], string][]).filter(

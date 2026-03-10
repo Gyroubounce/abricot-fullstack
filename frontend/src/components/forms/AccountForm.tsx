@@ -15,15 +15,18 @@ export default function AccountForm() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isInitialized, setIsInitialized] = useState(false); // ✅ Nouveau
 
   useEffect(() => {
-    if (user) {
+    // ✅ Ne remplir les champs qu'UNE SEULE FOIS au chargement
+    if (user && !isInitialized) {
       const parts = (user.name || "").split(" ");
       setFirstName(parts[0] || "");
       setLastName(parts.slice(1).join(" ") || "");
-      setEmail(user.email);
+      setEmail(user.email || "");
+      setIsInitialized(true); // ✅ Marquer comme initialisé
     }
-  }, [user]);
+  }, [user, isInitialized]); // ✅ Ajouter isInitialized dans les dépendances
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -31,11 +34,24 @@ export default function AccountForm() {
     setError(null);
     setLoading(true);
 
-    try {
-      const body: { name: string; email: string; password?: string } = {
-        name: `${firstName} ${lastName}`.trim(),
-        email,
-      };
+     try {
+    const newName = `${firstName} ${lastName}`.trim();
+    const hasChanges = 
+      newName !== (user?.name || "") || 
+      email !== (user?.email || "") || 
+      password !== "";
+
+    // ✅ Si rien n'a changé, ne rien faire
+    if (!hasChanges) {
+      setMessage("Aucune modification détectée.");
+      setLoading(false);
+      return;
+    }
+
+    const body: { name: string; email: string; password?: string } = {
+      name: newName,
+      email,
+    };
       if (password) body.password = password;
 
       const res = await fetch(
@@ -56,7 +72,12 @@ export default function AccountForm() {
 
       setMessage("Profil mis à jour avec succès.");
       setPassword("");
+      
+       // ✅ Attendre un peu avant de rafraîchir pour éviter le "saut"
+      await new Promise(resolve => setTimeout(resolve, 100));
       await refreshProfile();
+      
+    
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message || "Une erreur est survenue");
@@ -78,7 +99,7 @@ export default function AccountForm() {
 
       {/* Nom */}
       <div className="flex flex-col gap-1">
-        <label htmlFor="lastName" className="text-sm  text-text-primary">
+        <label htmlFor="lastName" className="text-sm text-text-primary">
           Nom
         </label>
         <input
@@ -96,7 +117,7 @@ export default function AccountForm() {
 
       {/* Prénom */}
       <div className="flex flex-col gap-1">
-        <label htmlFor="firstName" className="text-sm  text-text-primary">
+        <label htmlFor="firstName" className="text-sm text-text-primary">
           Prénom
         </label>
         <input
@@ -132,8 +153,8 @@ export default function AccountForm() {
 
       {/* Mot de passe */}
       <div className="flex flex-col gap-1">
-        <label htmlFor="password" className="text-sm  text-text-primary">
-          Mot de passe
+        <label htmlFor="password" className="text-sm text-text-primary">
+          Mot de passe 
         </label>
         <div className="relative">
           <input
