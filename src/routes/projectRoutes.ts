@@ -19,7 +19,7 @@ const router = Router();
  * @header  Authorization: Bearer <token>
  * @body    { name: string, description?: string, contributors?: string[] }
  */
-router.post("/", authenticateToken, createProject);
+router.post("/", authenticateToken as any, createProject);
 
 /**
  * @route   GET /projects
@@ -27,7 +27,7 @@ router.post("/", authenticateToken, createProject);
  * @access  Private (nécessite un token JWT valide)
  * @header  Authorization: Bearer <token>
  */
-router.get("/", authenticateToken, getProjects);
+router.get("/", authenticateToken as any, getProjects);
 
 /**
  * @route   GET /projects/:id
@@ -35,7 +35,7 @@ router.get("/", authenticateToken, getProjects);
  * @access  Private (nécessite un token JWT valide et accès au projet)
  * @header  Authorization: Bearer <token>
  */
-router.get("/:id", authenticateToken, getProject);
+router.get("/:id", authenticateToken as any, getProject);
 
 /**
  * @route   PUT /projects/:id
@@ -44,7 +44,7 @@ router.get("/:id", authenticateToken, getProject);
  * @header  Authorization: Bearer <token>
  * @body    { name?: string, description?: string }
  */
-router.put("/:id", authenticateToken, updateProject);
+router.put("/:id", authenticateToken as any, updateProject);
 
 /**
  * @route   DELETE /projects/:id
@@ -52,7 +52,7 @@ router.put("/:id", authenticateToken, updateProject);
  * @access  Private (nécessite un token JWT valide et être propriétaire)
  * @header  Authorization: Bearer <token>
  */
-router.delete("/:id", authenticateToken, deleteProject);
+router.delete("/:id", authenticateToken as any, deleteProject);
 
 /**
  * @route   POST /projects/:id/contributors
@@ -61,7 +61,7 @@ router.delete("/:id", authenticateToken, deleteProject);
  * @header  Authorization: Bearer <token>
  * @body    { email: string, role?: 'ADMIN' | 'CONTRIBUTOR' }
  */
-router.post("/:id/contributors", authenticateToken, addContributor);
+router.post("/:id/contributors", authenticateToken as any, addContributor);
 
 /**
  * @route   DELETE /projects/:id/contributors/:userId
@@ -71,7 +71,7 @@ router.post("/:id/contributors", authenticateToken, addContributor);
  */
 router.delete(
   "/:id/contributors/:userId",
-  authenticateToken,
+  authenticateToken as any,
   removeContributor
 );
 
@@ -84,7 +84,7 @@ import {
   deleteTask,
 } from "../controllers/taskController";
 
-router.post("/:id/tasks", authenticateToken, createTask);
+router.post("/:id/tasks", authenticateToken as any, createTask);
 
 /**
  * @route   GET /projects/:id/tasks
@@ -92,10 +92,10 @@ router.post("/:id/tasks", authenticateToken, createTask);
  * @access  Private (nécessite un token JWT valide et accès au projet)
  * @header  Authorization: Bearer <token>
  */
-router.get("/:id/tasks", authenticateToken, getTasks);
-router.get("/:id/tasks/:taskId", authenticateToken, getTask);
-router.put("/:id/tasks/:taskId", authenticateToken, updateTask);
-router.delete("/:id/tasks/:taskId", authenticateToken, deleteTask);
+router.get("/:id/tasks", authenticateToken as any, getTasks);
+router.get("/:id/tasks/:taskId", authenticateToken as any, getTask);
+router.put("/:id/tasks/:taskId", authenticateToken as any, updateTask);
+router.delete("/:id/tasks/:taskId", authenticateToken as any, deleteTask);
 
 // Routes pour les commentaires
 import {
@@ -106,21 +106,21 @@ import {
   deleteComment,
 } from "../controllers/commentController";
 
-router.post("/:id/tasks/:taskId/comments", authenticateToken, createComment);
-router.get("/:id/tasks/:taskId/comments", authenticateToken, getComments);
+router.post("/:id/tasks/:taskId/comments", authenticateToken as any, createComment);
+router.get("/:id/tasks/:taskId/comments", authenticateToken as any, getComments);
 router.get(
   "/:id/tasks/:taskId/comments/:commentId",
-  authenticateToken,
+  authenticateToken as any,
   getComment
 );
 router.put(
   "/:id/tasks/:taskId/comments/:commentId",
-  authenticateToken,
+  authenticateToken as any,
   updateComment
 );
 router.delete(
   "/:id/tasks/:taskId/comments/:commentId",
-  authenticateToken,
+  authenticateToken as any,
   deleteComment
 );
 

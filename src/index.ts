@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import passport from './config/passport';
+import oauthRoutes from './routes/oauth';
 import helmet from "helmet";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
@@ -34,6 +36,9 @@ const PORT = process.env.PORT || 8000;
 
 // Middleware cookie-parser (pour lire les cookies HttpOnly)
 app.use(cookieParser());
+
+app.use(cookieParser());       
+app.use(passport.initialize()); 
 
 // Middleware de sécurité
 app.use(helmet());
@@ -72,11 +77,13 @@ app.use("/auth", authRoutes);
 app.use("/projects", projectRoutes);
 app.use("/dashboard", dashboardRoutes);
 
-// Route pour la recherche d'utilisateurs
-app.get("/users/search", authenticateToken, searchUsers);
+// ✅ Routes OAuth GitHub
+app.use(oauthRoutes); 
 
-app.get("/users/search", authenticateToken, searchUsers);
-app.get("/users", authenticateToken, getAllUsers);
+// Route pour la recherche d'utilisateurs
+
+app.get("/users/search", authenticateToken as any, searchUsers);
+app.get("/users", authenticateToken as any, getAllUsers);
 
 // Route de santé
 app.get("/health", (req, res) => {

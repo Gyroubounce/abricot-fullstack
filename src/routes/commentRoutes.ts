@@ -11,7 +11,7 @@ import { authenticateToken } from "../middleware/auth";
 const router = Router();
 
 // Toutes les routes nécessitent une authentification
-router.use(authenticateToken);
+router.use(authenticateToken as any);
 
 // Routes pour les commentaires
 router.post("/", createComment);

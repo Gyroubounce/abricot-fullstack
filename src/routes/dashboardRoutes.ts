@@ -9,7 +9,7 @@ import {
 const router = express.Router();
 
 // Toutes les routes du tableau de bord nécessitent une authentification
-router.use(authenticateToken);
+router.use(authenticateToken as any);
 
 // Récupérer les tâches assignées à l'utilisateur connecté
 router.get("/assigned-tasks", getAssignedTasks);

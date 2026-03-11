@@ -18,7 +18,7 @@ const router = Router();
  * @header  Authorization: Bearer <token>
  * @body    { title: string, description?: string, priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT', dueDate?: string }
  */
-router.post("/", authenticateToken, createTask);
+router.post("/", authenticateToken as any, createTask);
 
 /**
  * @route   GET /projects/:projectId/tasks
@@ -26,7 +26,7 @@ router.post("/", authenticateToken, createTask);
  * @access  Private (nécessite un token JWT valide et accès au projet)
  * @header  Authorization: Bearer <token>
  */
-router.get("/", authenticateToken, getTasks);
+router.get("/", authenticateToken as any, getTasks);
 
 /**
  * @route   GET /projects/:projectId/tasks/:taskId
@@ -34,7 +34,7 @@ router.get("/", authenticateToken, getTasks);
  * @access  Private (nécessite un token JWT valide et accès au projet)
  * @header  Authorization: Bearer <token>
  */
-router.get("/:taskId", authenticateToken, getTask);
+router.get("/:taskId", authenticateToken as any, getTask);
 
 /**
  * @route   PUT /projects/:projectId/tasks/:taskId
@@ -43,7 +43,7 @@ router.get("/:taskId", authenticateToken, getTask);
  * @header  Authorization: Bearer <token>
  * @body    { title?: string, description?: string, status?: 'TODO' | 'IN_PROGRESS' | 'DONE' | 'CANCELLED', priority?: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT', dueDate?: string }
  */
-router.put("/:taskId", authenticateToken, updateTask);
+router.put("/:taskId", authenticateToken as any, updateTask);
 
 /**
  * @route   DELETE /projects/:projectId/tasks/:taskId
@@ -51,7 +51,7 @@ router.put("/:taskId", authenticateToken, updateTask);
  * @access  Private (nécessite un token JWT valide et accès au projet)
  * @header  Authorization: Bearer <token>
  */
-router.delete("/:taskId", authenticateToken, deleteTask);
+router.delete("/:taskId", authenticateToken as any, deleteTask);
 
 // Routes pour les commentaires
 router.use("/:taskId/comments", commentRoutes);

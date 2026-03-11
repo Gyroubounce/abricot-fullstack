@@ -1,3 +1,4 @@
+
 import "./globals.css";
 import { Inter, Manrope } from "next/font/google";
 import { AuthProvider } from "@/context/AuthContext";

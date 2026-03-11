@@ -32,7 +32,7 @@ router.post("/login", login);
  * @access  Private (nécessite un token JWT valide)
  * @header  Authorization: Bearer <token>
  */
-router.get("/profile", authenticateToken, getProfile);
+router.get("/profile", authenticateToken as any, getProfile);
 
 /**
  * @route   PUT /auth/profile
@@ -41,7 +41,7 @@ router.get("/profile", authenticateToken, getProfile);
  * @header  Authorization: Bearer <token>
  * @body    { name?: string, email?: string }
  */
-router.put("/profile", authenticateToken, updateProfile);
+router.put("/profile", authenticateToken as any, updateProfile);
 
 /**
  * @route   PUT /auth/password
@@ -50,6 +50,6 @@ router.put("/profile", authenticateToken, updateProfile);
  * @header  Authorization: Bearer <token>
  * @body    { currentPassword: string, newPassword: string }
  */
-router.put("/password", authenticateToken, updatePassword);
+router.put("/password", authenticateToken as any, updatePassword);
 
 export default router;

@@ -15,6 +15,10 @@ export default function DashboardHeader({
   view,
   onViewChange,
 }: Props) {
+
+
+console.log("NAME FRONT:", name);
+
   return (
     <div className="flex flex-col gap-12 my-8">
 

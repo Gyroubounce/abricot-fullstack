@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await res.json();
       console.log("Profil récupéré :", data);
-      setUser(data.data);
+      setUser(data.data.user);
     } catch (err) {
       console.error("Erreur refreshProfile :", err);
       setUser(null);

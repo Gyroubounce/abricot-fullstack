@@ -6,8 +6,15 @@ import Link from "next/link";
 import Image from "next/image";
 import Logo from "@/app/assets/Union.png";
 import ConnexionImg from "@/app/assets/Connexion.jpg";
+import GitHubIcon from "@/components/ui/icons/GitHubIcon";
 
 export default function LoginPage() {
+
+    // ✅ Fonction pour rediriger vers GitHub OAuth
+  function handleGitHubLogin() {
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/github`;
+  }
+
   return (
     <div className="flex min-h-screen w-container-width justify-center"
     role="main"
@@ -30,6 +37,31 @@ export default function LoginPage() {
             <h1 className="text-[40px] font-bold text-brand-dark mb-5">
               Connexion
             </h1>
+
+               {/* ✅ Bouton GitHub OAuth */}
+            <button
+              type="button"
+              onClick={handleGitHubLogin}
+               className="w-62.25 h-12.5 flex items-center justify-center gap-3 border border-btn-black rounded-[8px] bg-btn-black text-text-white hover:bg-bg-content hover:text-brand-dark hover:border-brand-dark transition mb-4"
+              aria-label="Se connecter avec GitHub"
+            >
+              <GitHubIcon />
+              <span className="text-base">
+                Continuer avec GitHub
+              </span>
+            </button>
+
+            {/* ✅ Séparateur "Ou" */}
+            <div className="relative w-full mb-4">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-system-neutral"></div>
+              </div>
+              <div className="relative flex justify-center">
+                <span className="px-3 bg-bg-dashboard text-sm text-text-secondary">
+                  Ou
+                </span>
+              </div>
+            </div>
 
             {/* Formulaire */}
             <LoginForm/>
