@@ -65,6 +65,10 @@ export default function CreateTaskModal({
   }
 
   const isEdit = !!initialTask;
+console.log("🟢 MODALE CRÉATION OUVERTE — Données :", {
+  mode: "create",
+  initialTask: null,
+});
 
   return (
     <BaseModal

@@ -18,9 +18,9 @@ export function useTask() {
   const [error, setError] = useState<string | null>(null);
 
   // ---------------------------------------------------------
-  // CREATE TASK
+  // CREATE TASK (API only)
   // ---------------------------------------------------------
-  async function createTask(projectId: string, data: CreateTaskPayload) {
+  async function createTaskAPI(projectId: string, data: CreateTaskPayload) {
     setLoading(true);
     setError(null);
 
@@ -40,9 +40,9 @@ export function useTask() {
   }
 
   // ---------------------------------------------------------
-  // UPDATE TASK
+  // UPDATE TASK (API only)
   // ---------------------------------------------------------
-  async function updateTask(
+  async function updateTaskAPI(
     projectId: string,
     taskId: string,
     data: Partial<Task> & { assigneeIds?: string[] }
@@ -69,9 +69,9 @@ export function useTask() {
   }
 
   // ---------------------------------------------------------
-  // DELETE TASK
+  // DELETE TASK (API only)
   // ---------------------------------------------------------
-  async function deleteTask(projectId: string, taskId: string) {
+  async function deleteTaskAPI(projectId: string, taskId: string) {
     setLoading(true);
     setError(null);
 
@@ -95,8 +95,8 @@ export function useTask() {
   return {
     loading,
     error,
-    createTask,
-    updateTask,
-    deleteTask,
+    createTaskAPI,
+    updateTaskAPI,
+    deleteTaskAPI,
   };
 }

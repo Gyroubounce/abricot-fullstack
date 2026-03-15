@@ -163,7 +163,7 @@ export default function TaskForm({
           </select>
         </div>
 
-        {error && <p className="text-sm text-system-error">{error}</p>}
+        {error && <p className="text-sm text-text-error">{error}</p>}
 
         <button
           type="submit"

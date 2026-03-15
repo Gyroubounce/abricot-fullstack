@@ -64,14 +64,27 @@ export default function EditTaskModal({
       setLoading(false);
     }
   }
+console.log("🟢 MODALE OUVERTE — Données de la tâche :", {
+  id: task.id,
+  title: task.title,
+  description: task.description,
+  dueDate: task.dueDate,
+  status: task.status,
+  priority: task.priority,
+  assignees: task.assignees?.map(a => a.user.name),
+});
 
   return (
+
+    
     <BaseModal
       id="edit-task-modal-title"
       title="Modifier la tâche"
       onClose={onClose}
     >
+      
       <TaskForm
+        key={task.id} 
         initialTask={task}
         members={members}
         ownerId={ownerId}

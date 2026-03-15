@@ -9,11 +9,8 @@ import {
   removeContributor as apiRemoveContributor,
 } from "@/lib/api/projects";
 
-import {
-  createTask as apiCreateTask,
-  updateTask as apiUpdateTask,
-  deleteTask as apiDeleteTask,
-} from "@/lib/api/tasks";
+import { useTask } from "@/hooks/useTask";
+import { sanitizeAssigneeIds } from "@/hooks/sanitizeAssignees";
 
 import type { Project, Task, ProjectMember } from "@/types/index";
 
@@ -22,27 +19,7 @@ export type ProjectDetail = Project & {
 };
 
 // ---------------------------------------------------------
-// 🔥 1) OWNER TOUJOURS DANS LES MEMBERS
-// ---------------------------------------------------------
-function ensureOwnerInMembers(project: Project): ProjectMember[] {
-  const owner = project.owner;
-  const members = project.members ?? [];
-
-  const hasOwner = members.some((m) => m.user.id === owner.id);
-  if (hasOwner) return members;
-
-  const ownerMember: ProjectMember = {
-    id: `owner-${owner.id}`,
-    user: owner,
-    role: members[0]?.role ?? "CONTRIBUTOR", // rôle fallback
-    joinedAt: project.createdAt ?? new Date().toISOString(),
-  };
-
-  return [ownerMember, ...members];
-}
-
-// ---------------------------------------------------------
-// 🔥 2) ASSIGNEES TOUJOURS VALIDES
+// 🔥 Nettoyage des assignees invalides (owner exclu)
 // ---------------------------------------------------------
 function sanitizeTaskAssignees(tasks: Task[], members: ProjectMember[]): Task[] {
   const memberIds = members.map((m) => m.user.id);
@@ -57,6 +34,12 @@ export function useProject(projectId: string) {
   const [project, setProject] = useState<ProjectDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const {
+    createTaskAPI,
+    updateTaskAPI,
+    deleteTaskAPI,
+  } = useTask();
 
   // ---------------------------------------------------------
   // FETCH PROJECT + TASKS
@@ -75,10 +58,7 @@ export function useProject(projectId: string) {
 
     const { data: taskData } = await fetchProjectTasks(projectId);
 
-    // 1) Owner toujours dans les membres
-    const safeMembers = ensureOwnerInMembers(projectData.project);
-
-    // 2) Assignees toujours valides
+    const safeMembers = projectData.project.members ?? [];
     const safeTasks = sanitizeTaskAssignees(taskData?.tasks ?? [], safeMembers);
 
     setProject({
@@ -91,31 +71,7 @@ export function useProject(projectId: string) {
   }, [projectId]);
 
   // ---------------------------------------------------------
-  // UPDATE PROJECT
-  // ---------------------------------------------------------
-  async function updateProject(name: string, description: string): Promise<void> {
-    const { error: err } = await apiUpdateProject(projectId, name, description);
-    if (err) throw new Error(err);
-    await fetchProject();
-  }
-
-  // ---------------------------------------------------------
-  // CONTRIBUTORS
-  // ---------------------------------------------------------
-  async function addContributor(email: string): Promise<void> {
-    const { error: err } = await apiAddContributor(projectId, email);
-    if (err) throw new Error(err);
-    await fetchProject();
-  }
-
-  async function removeContributor(userId: string): Promise<void> {
-    const { error: err } = await apiRemoveContributor(projectId, userId);
-    if (err) throw new Error(err);
-    await fetchProject();
-  }
-
-  // ---------------------------------------------------------
-  // CREATE TASK
+  // CREATE TASK (logique métier)
   // ---------------------------------------------------------
   async function createTask(
     title: string,
@@ -124,89 +80,55 @@ export function useProject(projectId: string) {
     assigneeIds: string[],
     status: Task["status"],
     priority: Task["priority"]
-  ): Promise<void> {
+  ) {
+    if (!project) return;
+
+    const safeAssignees = sanitizeAssigneeIds(assigneeIds, project.members);
 
     const isoDate =
       dueDate && dueDate.trim() !== ""
         ? new Date(dueDate).toISOString()
-        : "";
+        : null;
 
-    const { error: err } = await apiCreateTask(
-      projectId,
+    await createTaskAPI(projectId, {
       title,
       description,
-      isoDate,
-      assigneeIds,
+      dueDate: isoDate,
+      assigneeIds: safeAssignees,
       status,
-      priority
-    );
-
-    if (err) throw new Error(err);
+      priority,
+    });
 
     await fetchProject();
   }
 
   // ---------------------------------------------------------
-  // UPDATE TASK STATUS
-  // ---------------------------------------------------------
-  async function updateTaskStatus(taskId: string, status: Task["status"]): Promise<void> {
-    const { error: err } = await apiUpdateTask(projectId, taskId, { status });
-    if (err) throw new Error(err);
-
-    setProject((prev) => {
-      if (!prev) return prev;
-
-      return {
-        ...prev,
-        tasks: prev.tasks.map((t) =>
-          t.id === taskId ? { ...t, status } : t
-        ),
-      };
-    });
-  }
-
-  // ---------------------------------------------------------
-  // UPDATE FULL TASK
+  // UPDATE TASK (logique métier)
   // ---------------------------------------------------------
   async function updateTask(
     taskId: string,
-    data: Partial<
-      Pick<Task, "title" | "description" | "dueDate" | "status" | "priority"> & {
-        assigneeIds?: string[];
-      }
-    >
-  ): Promise<void> {
+    data: Partial<Task> & { assigneeIds?: string[] }
+  ) {
+    if (!project) return;
 
-    const { error: err } = await apiUpdateTask(projectId, taskId, data);
-    if (err) throw new Error(err);
+    const safeAssignees = data.assigneeIds
+      ? sanitizeAssigneeIds(data.assigneeIds, project.members)
+      : undefined;
 
-    setProject((prev) => {
-      if (!prev) return prev;
-
-      return {
-        ...prev,
-        tasks: prev.tasks.map((t) =>
-          t.id === taskId ? { ...t, ...data } : t
-        ),
-      };
+    await updateTaskAPI(projectId, taskId, {
+      ...data,
+      ...(safeAssignees ? { assigneeIds: safeAssignees } : {}),
     });
+
+    await fetchProject();
   }
 
   // ---------------------------------------------------------
   // DELETE TASK
   // ---------------------------------------------------------
-  async function deleteTask(taskId: string): Promise<void> {
-    const { error: err } = await apiDeleteTask(projectId, taskId);
-    if (err) throw new Error(err);
-
-    setProject((prev) => {
-      if (!prev) return prev;
-
-      return {
-        ...prev,
-        tasks: prev.tasks.filter((t) => t.id !== taskId),
-      };
-    });
+  async function deleteTask(taskId: string) {
+    await deleteTaskAPI(projectId, taskId);
+    await fetchProject();
   }
 
   return {
@@ -214,11 +136,10 @@ export function useProject(projectId: string) {
     loading,
     error,
     fetchProject,
-    updateProject,
-    addContributor,
-    removeContributor,
+    updateProject: apiUpdateProject,
+    addContributor: apiAddContributor,
+    removeContributor: apiRemoveContributor,
     createTask,
-    updateTaskStatus,
     updateTask,
     deleteTask,
   };
