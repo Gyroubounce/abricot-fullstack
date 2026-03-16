@@ -79,10 +79,7 @@ export function useProjects() {
       throw new Error("Utilisateur non authentifié");
     }
 
-    // 🔥 Ajouter automatiquement le owner dans les contributeurs
-    const uniqueContributors = Array.from(
-      new Set([user.id, ...(contributors ?? [])])
-    );
+   const uniqueContributors = contributors ?? [];
 
     const { data, error: err } = await apiCreateProject(
       name,

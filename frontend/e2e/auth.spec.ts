@@ -1,20 +1,19 @@
 
 import { test, expect } from '@playwright/test';
+import { testUsers } from "../e2e/fixtures/users";
 
-const e2eUser = {
-  email: "e2e@example.com",
-  password: "TestPassword123!"
-};
 
   test.describe('Authentification complète', () => {
+
+    const user = testUsers.e2e;
   
   test('Register → Login → Logout → Login avec erreur', async ({ page }) => {
 
     // === PARTIE 1 : INSCRIPTION ===
     await page.goto('/auth/register');
 
-    await page.fill('input[name="email"]', e2eUser.email);
-    await page.fill('input[name="password"]', e2eUser.password);
+    await page.fill('input[name="email"]', user.email);
+    await page.fill('input[name="password"]', user.password);
 
     await page.getByRole('button', { name: "S'inscrire" }).click();
 
@@ -22,8 +21,8 @@ const e2eUser = {
     await expect(page).toHaveURL('/auth/login');
 
     // === PARTIE 2 : LOGIN ===
-    await page.fill('input[name="email"]', e2eUser.email);
-    await page.fill('input[name="password"]', e2eUser.password);
+    await page.fill('input[name="email"]', user.email);
+    await page.fill('input[name="password"]', user.password);
     await page.click('button[type="submit"]:has-text("Se connecter")');
 
     await expect(page).toHaveURL('/dashboard');
@@ -64,7 +63,7 @@ const e2eUser = {
     await expect(page).toHaveURL('/auth/login');
 
     // === PARTIE 5 : LOGIN AVEC MAUVAIS MOT DE PASSE ===
-    await page.fill('input[name="email"]', e2eUser.email);
+    await page.fill('input[name="email"]', user.email);
     await page.fill('input[name="password"]', 'MauvaisMotDePasse123!');
     await page.click('button[type="submit"]:has-text("Se connecter")');
 

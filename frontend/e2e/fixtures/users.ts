@@ -2,10 +2,9 @@
 
 export const testUsers = {
   // ===== NOUVEAU USER (créé dynamiquement pour chaque test) =====
-  newUser: {
-    name: 'Test User',
-    email: `test-${Date.now()}@example.com`,
-    password: 'TestPassword123!'
+   e2e: {
+    email: "e2e@example.com",
+    password: "TestPassword123!"
   },
   
   // ===== USERS DU SEED (existants dans la DB) =====
@@ -68,4 +67,4 @@ export const testUsers = {
     email: 'jacques@example.com',
     password: 'password123'
   }
-};
+}as const;

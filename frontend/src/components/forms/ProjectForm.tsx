@@ -10,13 +10,15 @@ type Props = {
   initialDescription?: string;
   initialMembers?: ProjectMember[];
 
-  projectContributors: User[];   // 🔹 contributeurs du projet (hors owner)
-  totalContributors: number;     // 🔹 owner + contributeurs
+  projectContributors: User[];
+  totalContributors: number;
 
   submitLabel: string;
   loading: boolean;
   error: string | null;
-  onSubmit: (name: string, description: string) => Promise<void>;
+
+  // 🔥 Correction : onSubmit transmet aussi les contributeurs
+  onSubmit: (name: string, description: string, contributors: string[]) => Promise<void>;
 
   projectId?: string;
   onDelete: () => void;
@@ -31,7 +33,7 @@ export default function ProjectForm({
   initialName = "",
   initialDescription = "",
   initialMembers = [],
-  projectContributors,
+
   totalContributors,
   submitLabel,
   loading,
@@ -47,15 +49,17 @@ export default function ProjectForm({
   const [name, setName] = useState(initialName);
   const [description, setDescription] = useState(initialDescription);
 
+  // 🔥 Correction : transmettre les contributeurs sélectionnés
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    await onSubmit(name, description);
+
+    const contributorEmails = selectedContributors.map((c) => c.email);
+    await onSubmit(name, description, contributorEmails);
+
   }
 
-  // 🔹 Exclure les membres déjà dans le projet
   const excludeUserIds = initialMembers.map((m) => m.user.id);
 
-  // 🔹 Propriétaire
   const ownerMember = initialMembers.find((m) => m.user.id === ownerId);
   const ownerName = ownerMember?.user.name ?? "";
   const ownerInitials = getInitials(ownerName);
@@ -120,7 +124,7 @@ export default function ProjectForm({
               )}
 
               {/* Contributeurs du projet */}
-              {projectContributors.map((user) => (
+              {selectedContributors.map((user) => (
                 <div key={user.id} className="flex items-center gap-1 px-2.5 rounded-full">
                   <div className="w-5 h-5 rounded-full flex items-center justify-center bg-bg-grey-border">
                     <span className="text-[10px] font-semibold text-text-secondary">
@@ -156,17 +160,18 @@ export default function ProjectForm({
             onRemove={onRemoveContributor}
             label="Ajouter un contributeur"
             ownerId={ownerId}
-            buttonLabel={
-              totalContributors > 0
-                ? `${totalContributors} collaborateur${totalContributors > 1 ? "s" : ""}`
-                : "Choisir un ou plusieurs collaborateurs"
-            }
+           buttonLabel={
+            selectedContributors.length > 0
+              ? `${selectedContributors.length} collaborateur${selectedContributors.length > 1 ? "s" : ""}`
+              : "Choisir un ou plusieurs collaborateurs"
+          }
+
           />
         )}
 
         {/* Erreur */}
         {error && (
-          <p role="alert" aria-live="assertive" className="text-sm text-system-error">
+          <p role="alert" aria-live="assertive" className="text-sm text-text-error">
             {error}
           </p>
         )}
@@ -174,7 +179,6 @@ export default function ProjectForm({
         {/* Actions */}
         <div className="flex flex-row justify-between mt-4">
 
-          {/* Enregistrer */}
           <button
             type="submit"
             disabled={loading || !name.trim()}
@@ -183,7 +187,6 @@ export default function ProjectForm({
             {loading ? "En cours..." : submitLabel}
           </button>
 
-          {/* Supprimer */}
           {onDelete && projectId && (
             <button
               type="button"

@@ -141,3 +141,29 @@ hr {
   min-height: 100vh;
   background: var(--color-bg-dashboard);
 }
+
+
+.status-TODO {
+  color: var(--color-text-error);
+  background-color: var(--color-system-error);
+}
+
+.status-IN_PROGRESS{
+  color: var(--color-brand-dark);
+  background-color: var(--color-brand-light);
+}
+
+.status-DONE {
+  color: var(--color-text-success);
+  background-color: var(--color-system-success);
+}
+
+.status-hover:hover {
+  color: var(--color-text-info);
+  background-color: var(--color-system-info);
+}
+
+.status-CANCELLED {
+  color: var(--color-text-neutral);
+  background-color: var(--color-system-neutral);
+}

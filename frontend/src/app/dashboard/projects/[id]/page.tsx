@@ -35,8 +35,7 @@ export default function ProjectDetailPage() {
     addContributor,
     removeContributor,
     createTask,
-    updateTaskStatus,
-    updateTask,        // 🟩 AJOUT ICI
+    updateTask,
     deleteTask,
   } = useProject(id);
 
@@ -70,17 +69,13 @@ export default function ProjectDetailPage() {
 
   const isOwner = project.owner.id === user?.id;
 
-  // 🔹 Contributeurs du projet (hors propriétaire)
   const projectContributors =
     project.members
       ?.filter((m) => m.user.id !== project.owner.id)
       .map((m) => m.user) || [];
 
-  // 🔹 Total = propriétaire + contributeurs
   const totalContributors = 1 + projectContributors.length;
 
-
-  // Filtrage + tri
   const filteredTasks = (project.tasks ?? [])
     .filter((task) => {
       const matchSearch =
@@ -105,35 +100,32 @@ export default function ProjectDetailPage() {
     );
   }
 
-  // ✅ HANDLER POUR MODIFIER UNE TÂCHE
-async function handleUpdateTask(
-  title: string,
-  description: string,
-  dueDate: string | null,
-  assigneeIds: string[],
-  status: Task["status"],
-  priority: Task["priority"]
-) {
-  if (!editingTask) return;
+  async function handleUpdateTask(
+    title: string,
+    description: string,
+    dueDate: string | null,
+    assigneeIds: string[],
+    status: Task["status"],
+    priority: Task["priority"]
+  ) {
+    if (!editingTask) return;
 
-  await updateTask(editingTask.id, {
-    title,
-    description,
-    dueDate: dueDate ?? undefined,
-    assigneeIds,
-    status,
-    priority,
-  });
+    await updateTask(editingTask.id, {
+      title,
+      description,
+      dueDate: dueDate ?? undefined,
+      assigneeIds,
+      status,
+      priority,
+    });
 
-  closeModal();
-  setEditingTask(null);
-}
-
+    closeModal();
+    setEditingTask(null);
+  }
 
   return (
     <div className="flex flex-col gap-6">
 
-      {/* HEADER */}
       <ProjectHeader
         project={project}
         isOwner={isOwner}
@@ -143,7 +135,6 @@ async function handleUpdateTask(
         onCreateAITask={() => openModal("aiTask")}
       />
 
-      {/* FILTRES */}
       <ProjectFilters
         view={view}
         setView={setView}
@@ -153,7 +144,6 @@ async function handleUpdateTask(
         setSearch={setSearch}
       />
 
-      {/* LISTE DES TÂCHES */}
       <ProjectTaskList
         tasks={filteredTasks}
         ownerId={project.owner.id}
@@ -163,11 +153,12 @@ async function handleUpdateTask(
           openModal("editTask");
         }}
         onDeleteTask={deleteTask}
-        onStatusChange={updateTaskStatus}
+        onStatusChange={(taskId, status) =>
+          updateTask(taskId, { status })
+        }
         onRefresh={fetchProject}
       />
 
-      {/* MODALES */}
       {isOpen("editProject") && (
         <EditProjectModal
           projectId={id}
@@ -178,15 +169,23 @@ async function handleUpdateTask(
           projectContributors={projectContributors}
           totalContributors={totalContributors}
           onClose={closeModal}
-          onSubmit={updateProject}
-          onAddContributor={addContributor}
-          onRemoveContributor={removeContributor}
+          onSubmit={async (projectId, name, description) => {
+            await updateProject(projectId, name, description);
+          }}
+          onAddContributor={async (projectId, email) => {
+            await addContributor(projectId, email);
+          }}
+          onRemoveContributor={async (projectId, userId) => {
+            await removeContributor(projectId, userId);
+          }}
           onDelete={async (projectId) => {
             await deleteProject(projectId);
             router.push("/dashboard/projects");
           }}
+          onRefresh={fetchProject}
         />
       )}
+
 
       {isOpen("createTask") && (
         <CreateTaskModal
@@ -199,20 +198,18 @@ async function handleUpdateTask(
         />
       )}
 
-          {/* ÉDITION */}
-        {isOpen("editTask") && editingTask && (
-          <EditTaskModal
-            task={editingTask}
-            members={project.members}
-            ownerId={project.owner.id}
-            onClose={() => {
-              closeModal();
-              setEditingTask(null);
-            }}
-            onSubmit={handleUpdateTask}
-
-          />
-        )}
+      {isOpen("editTask") && editingTask && (
+        <EditTaskModal
+          task={editingTask}
+          members={project.members}
+          ownerId={project.owner.id}
+          onClose={() => {
+            closeModal();
+            setEditingTask(null);
+          }}
+          onSubmit={handleUpdateTask}
+        />
+      )}
 
       {isOpen("aiTask") && (
         <AITaskModal onClose={closeModal} onSubmit={handleAISubmit} />

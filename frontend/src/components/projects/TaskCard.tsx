@@ -77,10 +77,11 @@ export default function TaskCard({ task, ownerId,onDelete, onEdit, onStatusChang
           </button>
 
           {menuOpen && (
-            <div
-              role="menu"
-              className="absolute right-0 top-7 z-20 bg-bg-content border border-system-neutral rounded-[8px] shadow-modal w-40 py-1 overflow-hidden"
+          <div
+            role="menu"
+            className="absolute right-0 top-7 z-20 bg-bg-content border border-system-neutral rounded-[8px] shadow-modal w-30 py-3 overflow-hidden"
             >
+            <div className="flex flex-col items-center gap-2">
               {(["TODO", "IN_PROGRESS", "DONE", "CANCELLED"] as Task["status"][])
                 .filter((s) => s !== task.status)
                 .map((s) => (
@@ -92,14 +93,16 @@ export default function TaskCard({ task, ownerId,onDelete, onEdit, onStatusChang
                       onStatusChange(task.id, s);
                       setMenuOpen(false);
                     }}
-                    className="w-full text-left px-4 py-2 text-xs text-text-primary hover:bg-bg-grey-light transition"
+                    className={`w-fit px-2 py-1 text-xs rounded-full transition ${statusColor[s]} status-hover`}
                   >
-                    → {statusLabel[s]}
+                    {statusLabel[s]}
                   </button>
                 ))}
+            </div>
 
-              <hr className="my-1 border-system-neutral" aria-hidden="true" />
+            <hr className="my-2 border-system-neutral" aria-hidden="true" />
 
+            <div className="flex flex-col items-center gap-2">
               <button
                 type="button"
                 role="menuitem"
@@ -107,7 +110,7 @@ export default function TaskCard({ task, ownerId,onDelete, onEdit, onStatusChang
                   onEdit(task);
                   setMenuOpen(false);
                 }}
-                className="w-full text-left px-4 py-2 text-xs text-text-primary hover:bg-bg-grey-light transition"
+                className="w-fit px-2 py-1 text-xs text-brand-dark underline hover:text-text-primary transition"
               >
                 Modifier
               </button>
@@ -119,11 +122,13 @@ export default function TaskCard({ task, ownerId,onDelete, onEdit, onStatusChang
                   onDelete(task.id);
                   setMenuOpen(false);
                 }}
-                className="w-full text-left px-4 py-2 text-xs text-system-error hover:bg-bg-grey-light transition"
+                className="w-fit px-2 py-1 text-xs text-text-error hover:underline transition"
               >
                 Supprimer
               </button>
             </div>
+          </div>
+
           )}
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import BaseModal from "@/components/modals/BaseModal";
 import ProjectForm from "@/components/forms/ProjectForm";
 import ModalProjectDelete from "@/components/modals/ModalProjectDelete";
@@ -15,9 +15,14 @@ type Props = {
   projectContributors: User[];   // 🔹 remplacé uniqueContributors
   totalContributors: number;     // 🔹 toujours utile pour l’affichage
   onClose: () => void;
-  onSubmit: (name: string, description: string) => Promise<void>;
-  onAddContributor: (email: string) => Promise<void>;
-  onRemoveContributor: (userId: string) => Promise<void>;
+  onSubmit: (projectId: string, name: string, description: string) => Promise<void>;
+
+  onAddContributor: (projectId: string, email: string) => Promise<void>;
+
+  onRemoveContributor: (projectId: string, userId: string) => Promise<void>;
+
+  onRefresh: () => Promise<void>;
+
   onDelete: (projectId: string) => Promise<void>;
 };
 
@@ -33,18 +38,27 @@ export default function EditProjectModal({
   onSubmit,
   onAddContributor,
   onRemoveContributor,
+  onRefresh,
   onDelete,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [selectedContributors, setSelectedContributors] = useState<User[]>([]);
+  const [selectedContributors, setSelectedContributors] = useState<User[]>(projectContributors);
+
   const [deleteOpen, setDeleteOpen] = useState(false);
+
+  useEffect(() => {
+  setSelectedContributors(projectContributors);
+}, [projectContributors]);
 
   async function handleSubmit(name: string, description: string) {
     setError(null);
     setLoading(true);
     try {
-      await onSubmit(name, description);
+      await onSubmit(projectId, name, description);
+
+      await onRefresh(); 
+
       onClose();
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
@@ -57,7 +71,8 @@ export default function EditProjectModal({
   // 🔹 Ajout d’un contributeur via ContributorSearch
   async function handleAddContributor(user: User) {
     try {
-      await onAddContributor(user.email);
+      await onAddContributor(projectId, user.email);
+
       setSelectedContributors((prev) => [...prev, user]);
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);
@@ -67,7 +82,8 @@ export default function EditProjectModal({
   // 🔹 Suppression d’un contributeur
   async function handleRemoveContributor(userId: string) {
     try {
-      await onRemoveContributor(userId);
+      await onRemoveContributor(projectId, userId);
+
       setSelectedContributors((prev) => prev.filter((u) => u.id !== userId));
     } catch (err: unknown) {
       if (err instanceof Error) setError(err.message);

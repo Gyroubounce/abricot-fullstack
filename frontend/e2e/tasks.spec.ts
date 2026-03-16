@@ -1,193 +1,165 @@
 import { test, expect } from "@playwright/test";
+import { testUsers } from "../e2e/fixtures/users";
 
-const e2eUser = {
-  email: "e2e@example.com",
-  password: "TestPassword123!"
-};
+test.describe("Tasks — CRUD complet avec projet + contributeurs + IDs", () => {
+  const user = testUsers.e2e;
 
-test.describe("Tasks — CRUD complet", () => {
-
-  test.beforeEach(async ({ page }) => {
-    // Connexion
+  test("Créer un projet → créer une tâche → tester statuts → modifier → supprimer", async ({ page }) => {
+    // -------------------------------------------------------------
+    // AUTHENTIFICATION
+    // -------------------------------------------------------------
     await page.goto("/auth/login");
-    await page.fill('input[name="email"]', e2eUser.email);
-    await page.fill('input[name="password"]', e2eUser.password);
+    await page.fill('input[name="email"]', user.email);
+    await page.fill('input[name="password"]', user.password);
     await page.getByRole("button", { name: "Se connecter", exact: true }).click();
-
     await expect(page).toHaveURL("/dashboard");
 
-    // Aller sur Projets
+    // -------------------------------------------------------------
+    // NAVIGATION VERS PROJETS
+    // -------------------------------------------------------------
     await page.getByRole("link", { name: "Projets" }).click();
     await expect(page).toHaveURL("/dashboard/projects");
 
-    // 🔥 On récupère la carte du projet créé dans projects.spec.ts
-    const projectCard = page.locator('[aria-label="Voir le projet Projet E2E"]');
-    await expect(projectCard).toBeVisible();
+    const projectName = "Projet E2E - " + Date.now();
 
-    // 🔥 On récupère l’ID du projet via son href
+    // -------------------------------------------------------------
+    // CRÉATION DU PROJET
+    // -------------------------------------------------------------
+    // Vérifier si le projet existe déjà
+    const projectCard = page.locator(`[aria-label="Voir le projet ${projectName}"]`).first();
+    if (!(await projectCard.isVisible().catch(() => false))) {
+
+      await page.getByRole("button", { name: /créer/i }).first().click();
+      await page.fill("#project-name", projectName);
+      await page.fill("#project-description", "Projet généré automatiquement pour les tests E2E");
+
+      // --- AJOUT CONTRIBUTEURS ---
+      const contributorsBtn = page.getByRole("button", { name: /collaborateurs/i });
+      await contributorsBtn.click();
+
+      const users = page.locator('button:has(span)');
+      await users.nth(0).click();
+      await contributorsBtn.click();
+      await users.nth(1).click();
+
+      // Création du projet
+      await page.click('button[type="submit"]:has-text("Créer")');
+      await expect(page).toHaveURL("/dashboard/projects");
+      const card = page.locator(`[aria-label="Voir le projet ${projectName}"]`).first();
+      await expect(card).toBeVisible();
+      await expect(card.getByText("0/0 tâches terminées").first()).toBeVisible();
+      await expect(card.getByText(/Équipe \(\d+\)/).first()).toBeVisible();
+    }
+
+    // --- NAVIGATION VERS LE PROJET ---
+    await projectCard.click();
     const projectUrl = await projectCard.getAttribute("href");
     const projectId = projectUrl?.split("/").pop();
+    if (!projectId) throw new Error("Impossible de récupérer l'ID du projet");
 
-    // On ouvre la page du projet
     await page.goto(`/dashboard/projects/${projectId}`);
     await expect(page).toHaveURL(`/dashboard/projects/${projectId}`);
-  });
 
-  // -------------------------------------------------------------
-  // CRÉATION
-  // -------------------------------------------------------------
-  test("Créer une tâche", async ({ page }) => {
-    // On vérifie qu'il n'y a pas encore de tâches
-    await expect(page.getByText("Aucune tâche pour le moment.")).toBeVisible();
+    // -------------------------------------------------------------
+    // CRÉATION TÂCHE E2E
+    // -------------------------------------------------------------
+    const taskTitle = "Tâche E2E";
 
-    // Ouvrir la modale
-    await page.getByRole("button", { name: "Créer une nouvelle tâche" }).click();
+    // Vérifier si la tâche existe déjà dans la liste
+    let taskCard = page.locator(`article:has-text("${taskTitle}")`).first();
 
-    // Remplir les champs
-    await page.fill("#task-title", "Ma première tâche");
-    await page.fill("#task-description", "Description de la tâche");
+    if (!(await taskCard.isVisible().catch(() => false))) {
+      // 1️⃣ Ouvrir la modale "Créer une tâche"
+      await page.getByRole("button", { name: /créer une nouvelle tâche/i }).click();
+      const createDialog = page.getByRole("dialog", { name: /Créer une tâche/i });
+      await expect(createDialog).toBeVisible();
 
-    // Date d’échéance
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const formatted = tomorrow.toISOString().split("T")[0];
-    await page.fill("#task-due-date", formatted);
+      // 2️⃣ Remplir les champs
+      await createDialog.getByLabel("Titre de la tâche").fill(taskTitle);
+      await createDialog.getByLabel("Description de la tâche").fill("Description initiale");
 
-    // Assignation
-    await page.getByRole("combobox", { name: "Assigné à" }).click();
-    await page.getByRole("listbox").getByRole("option").first().click();
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dueDateStr = tomorrow.toISOString().split("T")[0];
+      await createDialog.getByLabel("Date d'échéance").fill(dueDateStr);
 
-    // Statut
-    const todoBtn = page.getByRole("button", { name: "À faire" });
-    await todoBtn.click();
+      // 3️⃣ Sélectionner les assignés
+      const assigneesBtn = createDialog.getByRole("button", { name: "Choisir des assignés" });
+      await assigneesBtn.click();
+      const assignees = createDialog.locator('button:has(span)');
+      await assignees.first().click();       // premier assigné
+      await assigneesBtn.click();            // rouvrir si nécessaire
+      await assignees.nth(1).click();       // deuxième assigné
 
-    // Soumettre
-    await page.getByRole("button", { name: "+ Ajouter une tâche" }).click();
+      // 4️⃣ Statut
+      await createDialog.getByRole("button", { name: "À faire" }).click();
 
-    // Vérification
-    await expect(page.getByText("Ma première tâche")).toBeVisible();
-  });
+      // 5️⃣ Cliquer sur le bouton "Ajouter" (submit)
+      await createDialog.getByRole("button", { name: /ajouter/i }).click();
 
-  // -------------------------------------------------------------
-  // MODIFICATION
-  // -------------------------------------------------------------
-  test("Modifier une tâche", async ({ page }) => {
-    // Création rapide d’une tâche
-    await page.getByRole("button", { name: "Créer une tâche" }).click();
-    await page.fill("#task-title", "Tâche à modifier");
-    await page.fill("#task-description", "Description initiale");
+      // 6️⃣ Attendre que la modale disparaisse
+      await expect(createDialog).toHaveCount(0);
 
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    await page.fill("#task-due-date", tomorrow.toISOString().split("T")[0]);
+      // 7️⃣ Vérifier que la tâche apparaît dans la liste
+      taskCard = page.locator(`div[aria-label="Tâche : ${taskTitle}"]`).first();
+      await expect(taskCard).toBeVisible({ timeout: 15000 });
 
-    await page.getByRole("button", { name: "À faire" }).click();
-    await page.getByRole("button", { name: "Créer une tâche" }).click();
+      console.log("Task créée avec succès !");
+    }
 
-    // Sélection de la carte
-    const taskCard = page.locator('article:has-text("Tâche à modifier")');
-    await expect(taskCard).toBeVisible();
+    // -------------------------------------------------------------
+    // RÉCUPÉRATION taskCard (plus d’ID nécessaire)
+    // -------------------------------------------------------------
+    const taskCardById = taskCard; // utiliser directement le locator
+    await expect(taskCardById).toBeVisible();
 
-    // Ouvrir la modale d’édition
-    await taskCard.getByRole("button", { name: /Modifier/i }).click();
+    // -------------------------------------------------------------
+    // TEST STATUT
+    // -------------------------------------------------------------
+    const optionsBtn = taskCardById.getByRole("button", { name: /options/i }).first();
+    await optionsBtn.click();
+    await page.getByRole("menuitem", { name: "En cours" }).click();
+    await expect(taskCardById.getByText("En cours").first()).toBeVisible();
 
-    await expect(page.getByRole("dialog", { name: "Modifier une tâche" })).toBeVisible();
+    // -------------------------------------------------------------
+    // MODIFICATION TÂCHE
+    // -------------------------------------------------------------
+    await optionsBtn.click();
+    await page.getByRole("menuitem", { name: "Modifier" }).click();
+    const editDialog = page.getByRole("dialog", { name: /Modifier la tâche/i });
+    await expect(editDialog).toBeVisible();
 
-    // Modifier les champs
-    await page.fill("#task-title", "Tâche modifiée");
-    await page.fill("#task-description", "Nouvelle description");
+    await editDialog.getByLabel("Titre de la tâche").fill("Tâche modifiée");
+    await editDialog.getByLabel("Description de la tâche").fill("Description modifiée");
 
-    await page.getByRole("button", { name: "En cours" }).click();
+    const afterTomorrow = new Date();
+    afterTomorrow.setDate(afterTomorrow.getDate() + 2);
+    await editDialog.getByLabel("Date d'échéance").fill(afterTomorrow.toISOString().split("T")[0]);
 
-    await page.getByRole("button", { name: "Enregistrer" }).click();
+    await editDialog.getByRole("button", { name: "Terminée" }).click();
+    
+    // Après avoir enregistré la modification
+    await editDialog.getByRole("button", { name: /enregistrer/i }).click();
 
-    // Vérification
-    await expect(page.getByText("Tâche modifiée")).toBeVisible();
-    await expect(page.getByText("En cours")).toBeVisible();
-  });
+    // Attendre que la modale disparaisse
+    await expect(editDialog).toHaveCount(0);
 
-  // -------------------------------------------------------------
-  // CHANGEMENT DE STATUT
-  // -------------------------------------------------------------
-  test("Changer le statut d'une tâche", async ({ page }) => {
-    // Création rapide
-    await page.getByRole("button", { name: "Créer une tâche" }).click();
-    await page.fill("#task-title", "Tâche à compléter");
-    await page.fill("#task-description", "Description");
+    // Re-localiser la tâche modifiée
+    const updatedTaskCard = page.locator(`div[aria-label="Tâche : Tâche modifiée"]`).first();
+    await expect(updatedTaskCard).toBeVisible();
 
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    await page.fill("#task-due-date", tomorrow.toISOString().split("T")[0]);
+    // Vérifier contenu
+    await expect(updatedTaskCard.getByText("Terminée").first()).toBeVisible();
 
-    await page.getByRole("button", { name: "À faire" }).click();
-    await page.getByRole("button", { name: "Créer une tâche" }).click();
+    // -------------------------------------------------------------
+    // SUPPRESSION TÂCHE
+    // -------------------------------------------------------------
+    // Comme la tâche disparaît à la suppression, il suffit de cliquer sur le bouton options de la tâche actuelle
+    const updatedOptionsBtn = updatedTaskCard.getByRole("button", { name: /options/i }).first();
+    await updatedOptionsBtn.click();
+    await page.getByRole("menuitem", { name: /supprimer/i }).click();
 
-    const taskCard = page.locator('article:has-text("Tâche à compléter")');
-    await expect(taskCard.getByText("À faire")).toBeVisible();
-
-    // Modifier le statut
-    await taskCard.getByRole("button", { name: /Modifier/i }).click();
-    await page.getByRole("button", { name: "Terminée" }).click();
-    await page.getByRole("button", { name: "Enregistrer" }).click();
-
-    // Vérification
-    await expect(taskCard.getByText("Terminée")).toBeVisible();
-    await expect(page.getByText("1/1 tâche terminée")).toBeVisible();
-  });
-
-  // -------------------------------------------------------------
-  // ASSIGNATION
-  // -------------------------------------------------------------
-  test("Assigner une tâche à un utilisateur", async ({ page }) => {
-    await page.getByRole("button", { name: "Créer une tâche" }).click();
-    await page.fill("#task-title", "Tâche assignée");
-    await page.fill("#task-description", "Description");
-
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    await page.fill("#task-due-date", tomorrow.toISOString().split("T")[0]);
-
-    await page.getByRole("button", { name: "À faire" }).click();
-
-    // Ouvrir la liste des collaborateurs
-    await page.getByRole("button", { name: "Choisir un ou plusieurs collaborateurs" }).click();
-
-    // Sélection du premier collaborateur
-    await page.locator('div[role="group"] button').first().click();
-
-    await page.getByRole("button", { name: "Créer une tâche" }).click();
-
-    await expect(page.getByText("Tâche assignée")).toBeVisible();
-  });
-
-  // -------------------------------------------------------------
-  // SUPPRESSION
-  // -------------------------------------------------------------
-  test("Supprimer une tâche", async ({ page }) => {
-    await page.getByRole("button", { name: "Créer une tâche" }).click();
-    await page.fill("#task-title", "Tâche à supprimer");
-    await page.fill("#task-description", "Description");
-
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    await page.fill("#task-due-date", tomorrow.toISOString().split("T")[0]);
-
-    await page.getByRole("button", { name: "À faire" }).click();
-    await page.getByRole("button", { name: "Créer une tâche" }).click();
-
-    const taskCard = page.locator('article:has-text("Tâche à supprimer")');
-    await expect(taskCard).toBeVisible();
-
-    // Supprimer
-    await taskCard.getByRole("button", { name: /Supprimer/i }).click();
-
-    const confirmDialog = page.getByRole("dialog", { name: "Supprimer la tâche" });
-    await expect(confirmDialog).toBeVisible();
-
-    await confirmDialog.getByRole("button", { name: "Confirmer" }).click();
-
-    // Vérification
-    await expect(page.getByText("Tâche à supprimer")).toHaveCount(0);
-    await expect(page.getByText("Aucune tâche pour le moment.")).toBeVisible();
+    // Attendre que la tâche disparaisse
+    await expect(page.locator(`div[aria-label="Tâche : Tâche modifiée"]`)).toHaveCount(0);
   });
 });

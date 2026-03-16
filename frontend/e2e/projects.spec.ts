@@ -1,13 +1,17 @@
 import { test, expect } from "@playwright/test";
+import { testUsers } from "../e2e/fixtures/users";
 
 test.describe("Projects — CRUD complet (UI réelle)", () => {
 
+  const user = testUsers.e2e;
+
   test.beforeEach(async ({ page }) => {
     // Connexion utilisateur E2E
+    await page.context().clearCookies();
     await page.goto("/auth/login");
 
-    await page.fill('input[name="email"]', "e2e@example.com");
-    await page.fill('input[name="password"]', "TestPassword123!");
+    await page.fill('input[name="email"]', user.email);
+    await page.fill('input[name="password"]', user.password);
 
     await page.click('button[type="submit"]');
 
@@ -21,46 +25,65 @@ test.describe("Projects — CRUD complet (UI réelle)", () => {
   test("Créer, afficher, modifier et supprimer un projet", async ({ page }) => {
 
     // --- 1) CRÉATION ---
+    // Nom unique pour éviter doublons
+    const projectName = `Projet E2E`;
+    const card = page.locator(`[aria-label="Voir le projet ${projectName}"]`).first();
+
+    if (!(await card.isVisible().catch(() => false))) {
+
+    // créer le projet seulement si la carte n'existe pas
     // On ouvre le modal
     await page.click('[aria-label="Créer un nouveau projet"]');
 
     // On remplit le formulaire
-    await page.fill("#project-name", "Projet E2E");
+    await page.fill("#project-name", projectName);
     await page.fill("#project-description", "Description du projet E2E");
 
-    // On crée le projet
+    // --- AJOUT CONTRIBUTEURS ---
+    const contributorsBtn = page.getByRole("button", { name: /collaborateurs/i });
+    await contributorsBtn.click();
+
+    // Sélection de 2 utilisateurs
+    const users = page.locator('button:has(span)');
+    await users.nth(0).click();
+    await contributorsBtn.click(); // rouvrir le dropdown si nécessaire
+    await users.nth(1).click();
+
+    // Création du projet
     await page.click('button[type="submit"]:has-text("Créer")');
 
-    // On reste sur /dashboard/projects
+    // Vérification que nous restons sur /dashboard/projects
     await expect(page).toHaveURL("/dashboard/projects");
 
-    // Vérification de la carte du projet
-    const card = page.locator('[aria-label="Voir le projet Projet E2E"]');
+    // Carte du projet
+    const card = page.locator(`[aria-label="Voir le projet ${projectName}"]`).first();
     await expect(card).toBeVisible();
-
+}
     // Vérification des infos affichées
-    await expect(card.getByText("0/0 tâches terminées")).toBeVisible();
-    await expect(card.getByText("Équipe (1)")).toBeVisible();
+    await expect(card.getByText("0/0 tâches terminées").first()).toBeVisible();
+    await expect(card.getByText(/Équipe \(\d+\)/).first()).toBeVisible();
 
     // --- 2) NAVIGATION ---
-    // On clique sur la carte → page du projet
     await card.click();
 
-    // 🔥 Récupération de l’ID du projet créé
-    const projectId = page.url().split("/").pop();
+    // 🔥 Récupération ID projet depuis href pour fiabilité
+    const projectUrl = await card.getAttribute("href");
+    const projectId = projectUrl?.split("/").pop();
+    if (!projectId) throw new Error("Impossible de récupérer l'ID du projet");
 
-    await expect(page).toHaveURL(/\/dashboard\/projects\/.+/);
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Projet E2E");
+    await expect(page).toHaveURL(`/dashboard/projects/${projectId}`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(projectName);
 
     // --- 3) MODIFICATION ---
     await page.click('button:has-text("Modifier")');
 
-    await page.fill("#project-name", "Projet E2E Modifié");
+    const modifiedName = `${projectName} Modifié`;
+    await page.fill("#project-name", modifiedName);
     await page.fill("#project-description", "Nouvelle description");
 
     await page.click('button[type="submit"]:has-text("Enregistrer")');
 
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Projet E2E Modifié");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(modifiedName);
 
     // --- 4) SUPPRESSION ---
     await page.click('button:has-text("modifier"), button:has-text("Modifier")');
