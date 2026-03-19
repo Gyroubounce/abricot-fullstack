@@ -5,7 +5,7 @@ const client_1 = require("@prisma/client");
 const app_1 = require("./app");
 const prisma = new client_1.PrismaClient();
 const app = (0, app_1.createApp)();
-const PORT = Number(process.env.PORT) || 8000;
+const PORT = Number(process.env.PORT) || 3000;
 const HOST = "0.0.0.0";
 const startServer = async () => {
     try {

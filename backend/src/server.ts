@@ -5,7 +5,7 @@ import { createApp } from "./app";
 const prisma = new PrismaClient();
 const app = createApp();
 
-const PORT = Number(process.env.PORT) || 8000;
+const PORT = Number(process.env.PORT) || 3000;
 const HOST = "0.0.0.0";
 
 const startServer = async () => {
