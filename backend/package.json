@@ -42,10 +42,7 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
      "ts-node": "^10.9.2",
-    "typescript": "^5.9.3"
-  },
-  "devDependencies": {
-    "nodemon": "^3.0.2",
+    "typescript": "^5.9.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.17",
@@ -55,6 +52,9 @@
     "@types/node": "^20.19.37",
     "@types/passport": "^1.0.17",
     "@types/passport-github2": "^1.2.9"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
    
     
   }
