@@ -23,15 +23,18 @@ export const createApp = () => {
  app.use(passport.initialize());
  app.use(helmet());
 
- app.use(
+const allowedOrigins =
+  process.env.NODE_ENV === "production"
+    ? [process.env.FRONTEND_URL].filter((o): o is string => Boolean(o))
+    : ["http://localhost:3000"];
+
+
+app.use(
  cors({
- origin:
- process.env.NODE_ENV === "production"
- ? ["https://abricot.webyourprogress.fr"]
- : ["http://localhost:3000"],
+ origin: allowedOrigins,
  credentials: true,
  })
- );
+);
 
  app.use(morgan("combined"));
  app.use(express.json({ limit: "10mb" }));
