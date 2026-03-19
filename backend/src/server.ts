@@ -12,8 +12,14 @@ console.log("[ENV] NODE_ENV =", process.env.NODE_ENV);
 console.log("[ENV] PORT =", process.env.PORT);
 console.log("[ENV] DATABASE_URL =", process.env.DATABASE_URL ? "SET" : "MISSING");
 
+console.log("[CHK] avant import Prisma");
 import { PrismaClient } from "@prisma/client";
+console.log("[CHK] après import Prisma");
+
+console.log("[CHK] avant import app");
 import { createApp } from "./app";
+console.log("[CHK] après import app");
+
 
 const prisma = new PrismaClient();
 const app = createApp();
