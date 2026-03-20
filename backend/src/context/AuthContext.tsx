@@ -1,9 +1,10 @@
 "use client";
 
 import { createContext, useState, useEffect, ReactNode } from "react";
+import { api } from "@/lib/api/api";
 
 type User = {
-  id: string;          // correspond à ce que retourne ton API
+  id: string;
   email: string;
   name: string;
   createdAt?: string;
@@ -16,7 +17,7 @@ type AuthContextType = {
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
-  register: (email: string, password: string) => Promise<void>; 
+  register: (email: string, password: string) => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -28,25 +29,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // 🔹 Récupération du profil utilisateur
   async function refreshProfile(): Promise<void> {
     try {
+      const res = await api.get("/auth/profile");
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/profile`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      
-
-      if (!res.ok) {
-        
-        setUser(null);
-        return;
-      }
-
-      const data = await res.json();
-     
-      setUser(data.data.user);
-    } catch  {
-    
+      setUser(res.data.data.user);
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);
@@ -56,65 +42,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // 🔹 Login
   async function login(email: string, password: string): Promise<void> {
     try {
-     
+      const res = await api.post("/auth/login", { email, password });
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-        credentials: "include",
-      });
-
-      const result = await res.json();
-     
-
-      if (!res.ok) {
-        throw new Error(result.message || "Identifiants incorrects");
-      }
-
-      // Stockage du token côté client pour les prochaines requêtes
-     
-
-      // Mettre à jour l'utilisateur
-      setUser(result.data.user);
+      setUser(res.data.data.user);
     } catch (err) {
-      
-      throw err; // remonter l'erreur pour l'affichage côté formulaire
+      throw err;
     }
   }
 
   // 🔹 Register
-async function register(email: string, password: string): Promise<void> {
-  try {
-    
+  async function register(email: string, password: string): Promise<void> {
+    try {
+      const res = await api.post("/auth/register", { email, password });
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/register`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-      credentials: "include",
-    });
-
-    const result = await res.json();
-  
-
-    if (!res.ok) {
-      throw new Error(result.message || "Erreur lors de l'inscription");
+      setUser(res.data.data.user);
+    } catch (err) {
+      throw err;
     }
-
-    // 🔥 Normalisation identique à login()
-    setUser(result.data.user);
-
-  } catch (err) {
-    
-    throw err;
   }
-}
-
 
   // 🔹 Logout
   function logout(): void {
-   
     setUser(null);
   }
 
@@ -123,7 +71,9 @@ async function register(email: string, password: string): Promise<void> {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshProfile, register }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, logout, refreshProfile, register }}
+    >
       {children}
     </AuthContext.Provider>
   );
