@@ -67,7 +67,7 @@ export default function LoginPage() {
             {/* Formulaire */}
             <LoginForm/>
 
-            {/* Mot de passe oublié centré */}
+           
             <div className="w-70.75 text-center mt-4">
               <div
                
