@@ -1,103 +1,36 @@
-# OpenClassrooms - Backend Abricot
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-Cette base de code est l'API REST complète pour l'authentification et la gestion de projets avec système de rôles et de permissions pour le projet Abricot.
+## Getting Started
 
-## Installation et Démarrage
-
-1. Installer les dépendances :
-
-```bash
-npm install
-```
-
-2. Configurer la base de données :
-
-```bash
-npx prisma generate
-npx prisma db push
-```
-
-3. Démarrer le serveur :
+First, run the development server:
 
 ```bash
 npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-Le serveur démarre sur `http://localhost:8000`
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Visualisation de la base de données
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-Vous pouvez visualiser votre base de données avec prisma studio. Pour cela, il vous suffit d'exécuter :
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-```bash
-npx prisma studio
-```
+## Learn More
 
-## Documentation
+To learn more about Next.js, take a look at the following resources:
 
-Ce projet utilise Swagger/OpenAPI pour documenter l'API backend de manière interactive et à jour.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## 🚀 Accès à la documentation
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-### URL de la documentation
+## Deploy on Vercel
 
-```
-http://localhost:8000/api-docs
-```
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-### Prérequis
-
-- Serveur backend démarré (`npm run dev`)
-- Base de données accessible
-
-## Seed de la database
-
-Il existe un script pour peupler la base de données avec des données de test réalistes pour tester toutes les fonctionnalités de l'application.
-
-## 🚀 Utilisation
-
-### Exécuter le script de seeding
-
-```bash
-npm run seed
-```
-
-## 📊 Données générées
-
-Le script crée les éléments suivants :
-
-### 👥 Utilisateurs (10)
-
-- **Alice Martin** (alice@example.com) - Propriétaire principal
-- **Bob Dupont** (bob@example.com)
-- **Caroline Leroy** (caroline@example.com)
-- **David Moreau** (david@example.com)
-- **Emma Rousseau** (emma@example.com)
-- **François Dubois** (francois@example.com)
-- **Gabrielle Simon** (gabrielle@example.com)
-- **Henri Laurent** (henri@example.com)
-- **Isabelle Petit** (isabelle@example.com)
-- **Jacques Durand** (jacques@example.com)
-
-**Mot de passe pour tous les utilisateurs :** `password123`
-
-## Système de Rôles
-
-### Rôles Utilisateur
-
-- **Administrateur de projet** : Peut éditer, supprimer le projet, créer et supprimer des tâches
-- **Contributeur** : Peut créer et supprimer des tâches
-- **Aucun accès** : Ne peut pas accéder au projet
-
-### Permissions par Rôle
-
-| Action                        | Propriétaire | Admin | Contributeur |
-|-------------------------------|--------------|-------|--------------|
-| Créer un projet               | ✅            | ❌     | ❌            |
-| Modifier le projet            | ✅            | ✅     | ❌            |
-| Supprimer le projet           | ✅            | ❌     | ❌            |
-| Ajouter/Retirer contributeurs | ✅            | ✅     | ❌            |
-| Lister les tâches d'un projet | ✅            | ✅     | ✅            |
-| Créer des tâches              | ✅            | ✅     | ✅            |
-| Modifier des tâches           | ✅            | ✅     | ✅            |
-| Supprimer des tâches          | ✅            | ✅     | ✅            |
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
