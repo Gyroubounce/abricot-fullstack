@@ -12,6 +12,7 @@ export default function LoginPage() {
 
     // ✅ Fonction pour rediriger vers GitHub OAuth
   function handleGitHubLogin() {
+    console.log("NEXT_PUBLIC_API_URL =", process.env.NEXT_PUBLIC_API_URL);
     window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/github`;
   }
 
